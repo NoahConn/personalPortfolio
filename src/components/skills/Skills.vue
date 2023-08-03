@@ -1,0 +1,36 @@
+<template>
+  <div 
+    class="transition duration-1000 backdrop-blur-0 hover:backdrop-blur-0 bg-light text dark:bg-zinc-800/80 dark:text-lighter rounded-2xl p-6"
+    :class="{'backdrop-blur-sm': renderBlur == true}"
+  >
+    <h1 class="text-4xl md:text-6xl font-bold dark:text-lighter">Skills</h1>
+    <div class="grid grid-rows-4 grid-flow-col gap-12 mt-8">
+      <img class="h-12 w-12" src="../../assets/icons/VueLogo.svg" alt="">
+      <img class="h-12 w-12" src="../../assets/icons/ReactLogo.svg" alt="">
+      <img class="h-12 w-12" src="../../assets/icons/FirebaseLogo.svg" alt="">
+      <img class="h-12 w-12" src="../../assets/icons/MongoDBLogo.svg" alt="">
+      <img class="h-12 w-12" src="../../assets/icons/GCPLogo.svg" alt="">
+      <img class="h-12 w-12" src="../../assets/icons/AWSLogo.svg" alt="">
+      <img class="h-12" src="../../assets/icons/FHIRLogo.png" alt="">
+      <img class="h-12" src="../../assets/icons/JSLogo.png" alt="">
+      <img class="h-12" src="../../assets/icons/TSLogo.png" alt="">
+      <img class="h-12" src="../../assets/icons/JavaLogo.svg" alt="">
+      <img class="h-12" src="../../assets/icons/PythonLogo.svg" alt="">
+      <img class="h-12" src="../../assets/icons/CSharpLogo.png" alt="">
+      <img class="h-12" src="../../assets/icons/HTMLLogo.png" alt="">
+      <img class="h-12" src="../../assets/icons/CSSLogo.svg" alt="">
+      <img class="h-12" src="../../assets/icons/TWLogo.svg" alt="">
+      <img class="h-12" src="../../assets/icons/SQL.svg" alt="">
+    </div>
+    
+  </div>
+</template>
+<script setup>
+import { onMounted, ref } from 'vue';
+const renderBlur = ref(false)
+onMounted(() => {
+  setTimeout(() => {
+    renderBlur.value = true
+  }, 150)
+})
+</script>
