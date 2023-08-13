@@ -4,13 +4,13 @@
       class="container flex flex-col px-4 w-full xl:px-20 md:pt-12 transition-opacity duration-300 ease-in-out"
       :class="{ 'opacity-0': !initLoad, 'opacity-100': initLoad }"
     >
-      <Header class="sticky top-8 h-16 mb-6 z-50"/>
+      <Header class="sticky top-8 h-16 mb-6 z-50" />
       <!-- CONTENT -->
       <div 
-        class="transition-opacity ease-in-out duration-300 mt-2 mb-8 md:mt-1 max-h-full overflow-y-auto"
+        class="transition-opacity ease-in-out duration-300 mt-4 mb-8 md:pt-2 max-h-full overflow-y-auto"
         :class="{'opacity-0': visible == false, 'opacity-100': visible == true}"
       >
-        <div v-if="activeTab == 'Home'" 
+        <div v-if="activeTab == 'Home'" class="" 
         >
           <HomeBio />
           <SocialIcons />

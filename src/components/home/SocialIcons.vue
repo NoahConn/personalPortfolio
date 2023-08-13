@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row justify-around mt-6 md:pt-8">
+  <div class="flex flex-row justify-around mt-6 md:pt-4">
     <div v-for="icon in icons" class="p-2 rounded-full ring-2 md:ring-4 ring-zinc-600 bg-light transition duration-300 hover:cursor-pointer hover:ring-zinc-900 shadow-xl">
       <a :href="icon.link" target="_blank">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="w-10 h-10 md:w-20 md:h-20 fill-zinc-600 transition duration-300 hover:fill-zinc-900">

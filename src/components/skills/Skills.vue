@@ -1,9 +1,9 @@
 <template>
   <div 
-    class="transition duration-1000 backdrop-blur-0 hover:backdrop-blur-0 bg-light text dark:bg-zinc-800/80 dark:text-lighter rounded-2xl p-6"
+    class="transition duration-1000 backdrop-blur-0 hover:backdrop-blur-0 mt-4 md:mt-0 text bg-zinc-800/80 text-lighter rounded-2xl p-6"
     :class="{'backdrop-blur-sm': renderBlur == true}"
   >
-    <h1 class="text-4xl md:text-6xl font-bold dark:text-lighter">Skills</h1>
+    <h1 class="text-4xl md:text-6xl font-bold text-lighter">Skills</h1>
     <div class="grid grid-rows-4 grid-flow-col gap-12 mt-8">
       <img class="h-12 w-12" src="../../assets/icons/VueLogo.svg" alt="">
       <img class="h-12 w-12" src="../../assets/icons/ReactLogo.svg" alt="">
