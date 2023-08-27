@@ -20,13 +20,13 @@
   z-index: 1;
 }
 
-.retro-background::after {
+/* .retro-background::after {
   content: "";
   position: absolute;
-  top: 50%; /* Start halfway down */
+  top: 0;
   left: 0;
   width: 100%;
-  height: 50%; /* Only cover the bottom half */
-  background: linear-gradient(to top, rgb(244, 221, 179) 0%, transparent 70%); /* Fully transparent a bit before the bottom */
-  z-index: -1; /* Position the gradient behind the content */
-}
+  height: 100%;
+  background: linear-gradient(to top, rgb(244, 221, 179), rgba(244, 221, 179, 0));
+  z-index: -1;
+} */

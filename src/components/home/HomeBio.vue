@@ -21,7 +21,7 @@
       I'm Noah, a full stack developer from the Pacific Northwest. 
       As the owner of Cascade Tech Consulting I've designed and developed web apps; 
       handling front-end UI/UX, back-end data architecture, and cloud service integration. 
-      I've led and mentored developers, helping foster confidence and achievemnt across the team while effectively managing business objectives and deadlines.
+      I've led and mentored developers, helping foster confidence and achievement across the team while effectively managing business objectives and deadlines.
       My core principles as a developer are adaptability, reliability, and effective communication. 
       Thanks for visiting, have a look around!
     </p>

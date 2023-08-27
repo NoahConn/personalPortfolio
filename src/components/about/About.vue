@@ -15,7 +15,7 @@
         My name is Noah Connolly and I'm a full stack web developer specializing in Vue.js, Firebase, and Cloud Service Integration.
         I studied computer science and oboe performance at Ball State University in Muncie, Indiana.
         After graduating in the summer of 2021, I immediately began freelance consulting as a data analyst and web developer.
-        I had the oppurtunity to work on projects ranging from electronic health record applications to large scale data mining, cleaning, and conversions.
+        I had the opportunity to work on projects ranging from electronic health record applications to large scale data mining, cleaning, and conversions.
       </p>
       <p class="mb-4 indent-10">
         Software development is hard enough as it is and developers run into problems like misscomunication and burnout. 
