@@ -124,7 +124,7 @@ const sendMessage = async () => {
 }
 
 const sendContactMessage = async (messageBundle) => {
-  const url = appState == 'development' ? 'http://127.0.0.1:5001/personalportfolio-45314/us-central1/sendContactMessage' : ''
+  const url = appState == 'development' ? 'http://127.0.0.1:5001/personalportfolio-45314/us-central1/sendContactMessage' : 'https://us-central1-personalportfolio-45314.cloudfunctions.net/sendContactMessage'
   try {
     const response = await axios.post(url, messageBundle)
   } catch (error) {
