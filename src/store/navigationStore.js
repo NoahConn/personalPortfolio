@@ -2,8 +2,8 @@ import { defineStore } from "pinia";
 
 const useNavigationStore = defineStore('navgiationStore', {
   state: () => ({
-    activeTab: 'Contact',
-    selectedTab: 'Contact',
+    activeTab: 'Home',
+    selectedTab: 'Home',
     visible: true,
     allTabs: [
       {
