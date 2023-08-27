@@ -65,49 +65,49 @@ onMounted(() => {
 const languages = ref([
   {
     text: 'Javascript', 
-    path: 'src/assets/icons/JSLogo.png', 
+    path: '/icons/JSLogo.png', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'Typescript', 
-    path: 'src/assets/icons/TSLogo.png', 
+    path: '/icons/TSLogo.png', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'HTML', 
-    path: 'src/assets/icons/HTMLLogo.png', 
+    path: '/icons/HTMLLogo.png', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'CSS', 
-    path: 'src/assets/icons/CSSLogo.svg', 
+    path: '/icons/CSSLogo.svg', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'Python', 
-    path: 'src/assets/icons/PythonLogo.svg', 
+    path: '/icons/PythonLogo.svg', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'Java', 
-    path: 'src/assets/icons/JavaLogo.svg', 
+    path: '/icons/JavaLogo.svg', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'PHP', 
-    path: 'src/assets/icons/PHPLogo.png', 
+    path: '/icons/PHPLogo.png', 
     height: '', 
     width: '16'
   }, 
   {
     text: 'C#', 
-    path: 'src/assets/icons/CSharpLogo.png', 
+    path: '/icons/CSharpLogo.png', 
     height: '16', 
     width: '16'
   }
@@ -116,25 +116,25 @@ const languages = ref([
 const cloudServices = ref([
   {
     text: 'Firebase', 
-    path: 'src/assets/icons/FirebaseLogo.svg', 
+    path: '/icons/FirebaseLogo.svg', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'Google Cloud Platform', 
-    path: 'src/assets/icons/GCPLogo.svg', 
+    path: '/icons/GCPLogo.svg', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'Amazon Web Services', 
-    path: 'src/assets/icons/AWSLogo.svg', 
+    path: '/icons/AWSLogo.svg', 
     height: '12', 
     width: '12'
   }, 
   {
     text: 'Mongo DB', 
-    path: 'src/assets/icons/MongoDBLogo.svg', 
+    path: '/icons/MongoDBLogo.svg', 
     height: '12', 
     width: '12'
   }, 
@@ -143,19 +143,19 @@ const cloudServices = ref([
 const dataStandards = ref([
   {
     text: 'SQL', 
-    path: 'src/assets/icons/SQL.svg', 
+    path: '/icons/SQL.svg', 
     height: '12', 
     width: '12'
   },
   {
     text: 'FHIR', 
-    path: 'src/assets/icons/FHIRLogo.png',
+    path: '/icons/FHIRLogo.png',
     width: '36', 
     height: '12'
   },
   {
     text: 'NoSQL', 
-    path: 'src/assets/icons/NoSQLLogo.png', 
+    path: '/icons/NoSQLLogo.png', 
     height: '12', 
     width: '12'
   }
