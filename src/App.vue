@@ -40,7 +40,7 @@
 </template>
  
 <script setup>
-import Header from './components/header.vue'
+import Header from './components/Header.vue'
 import SocialIcons from './components/home/SocialIcons.vue'
 import HomeBio from './components/home/HomeBio.vue'
 import ResumeFAB from './components/home/ResumeFAB.vue'

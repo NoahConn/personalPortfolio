@@ -25,3 +25,8 @@ dist-ssr
 
 # Firebase Config
 firebase.json
+
+# Local infra-as-code & migration notes — contain AWS account IDs; keep OUT of this PUBLIC repo.
+# These live locally (and belong in a private repo). Terraform state is also excluded.
+infra/
+MIGRATION.md
