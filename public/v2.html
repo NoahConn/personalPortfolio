@@ -564,6 +564,26 @@
     border-radius: 50%;
     transform: translate(-50%, -50%) scale(0);
   }
+  .tb-note {
+    position: absolute;
+    width: clamp(120px, 20vw, 180px);
+    background: var(--paper);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 0.45rem 0.55rem;
+    font-family: var(--mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    opacity: 0;
+    transform: scale(0);
+    will-change: transform, opacity;
+    z-index: 2;
+  }
+  .tb-note.nleft { transform-origin: 0 50%; }
+  .tb-note.nright { transform-origin: 100% 50%; }
+
   .fly-tag {
     position: absolute; left: 0; top: 0;
     font-family: var(--mono);
@@ -1139,7 +1159,6 @@
     else p += (scrollTarget - p) * (reduced ? 1 : 0.11);
     render(time);
     updateToolboxScrolly();
-    updateBuildsScrolly();
     updateFlourishes();
     if (playLock.active && Math.abs(window.scrollY - playLock.y) > 1) window.scrollTo(0, playLock.y);
     tickFPS(now);
@@ -1231,7 +1250,6 @@
         }
       }
       layoutToolboxScrolly();
-      layoutBuildsScrolly();
       layoutFlourishes();
       readScroll();
     }, 180);
@@ -1270,6 +1288,21 @@
         zone.appendChild(el);
         tb.chips.push({ el: el, vis: false, full: false, rot: (t % 2 ? 1 : -1) * (22 + (t * 11) % 42) });
       }
+    }
+    var TB_NOTES = [
+      { side: 'nleft',  acc: '#2E8F96', text: '01 · Foundation — languages & frameworks. Both sides of the wire.' },
+      { side: 'nright', acc: '#F2A65A', text: '02 · Runs on cloud & infra — CI/CD gates that cut releases 70%.' },
+      { side: 'nleft',  acc: '#E8703A', text: '03 · Talks to everything — ERP, FHIR, auth, telephony.' },
+      { side: 'nright', acc: '#D9412B', text: '04 · Topped with AI — 30+ managers use it daily.' }
+    ];
+    tb.notes = [];
+    for (var nn = 0; nn < TB_NOTES.length; nn++) {
+      var nel = document.createElement('div');
+      nel.className = 'tb-note ' + TB_NOTES[nn].side;
+      nel.textContent = TB_NOTES[nn].text;
+      nel.style.boxShadow = '3px 3px 0 ' + TB_NOTES[nn].acc;
+      zone.appendChild(nel);
+      tb.notes.push({ el: nel, side: TB_NOTES[nn].side });
     }
     tb.wrap = pinWrap; tb.zone = zone;
     tb.lid = sec.querySelector('.tb-lid');
@@ -1326,7 +1359,15 @@
     for (L = 1; L < 4; L++) tb.narrBounds[L] = 0.10 + 0.72 * (tb.layers[L].start / (N - 1));
     tb.wrapTop = tb.wrap.getBoundingClientRect().top + window.scrollY;
     tb.wrapH = tb.wrap.offsetHeight;
-    tb.lm = [0, tb.narrBounds[1], tb.narrBounds[2], tb.narrBounds[3], 1]; // zone per poured layer
+    tb.lm = [0, 1]; // the pour is ONE animation
+    var noteGap = Math.max(10, zw / 2 - maxW / 2 - 196);
+    for (var nL = 0; nL < (tb.notes ? tb.notes.length : 0); nL++) {
+      var firstChip = tb.chips[tb.layers[nL].start];
+      var noteEl = tb.notes[nL].el;
+      noteEl.style.top = (firstChip.ey - 6) + 'px';
+      if (tb.notes[nL].side === 'nleft') { noteEl.style.left = noteGap + 'px'; noteEl.style.right = ''; }
+      else { noteEl.style.right = noteGap + 'px'; noteEl.style.left = ''; }
+    }
     tb.sq = null;
     tb.lastQ = -1;
     tb.narrIdx = -1;
@@ -1336,7 +1377,7 @@
     if (!tb.built) return;
     var q = typeof forcedQ === 'number'
       ? clamp01(forcedQ)
-      : drive(tb, 'sq', clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H)), tb.lm || LM01, 0.22, function (v) { return tb.wrapTop + v * Math.max(1, tb.wrapH - H); });
+      : drive(tb, 'sq', clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H)), tb.lm || LM01, 0.3, function (v) { return tb.wrapTop + v * Math.max(1, tb.wrapH - H); });
     if (typeof forcedQ !== 'number' && Math.abs(q - tb.lastQ) < 0.0004) return;
     tb.lastQ = q;
     var N = tb.chips.length;
@@ -1367,9 +1408,14 @@
       c.el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (c.rot * u).toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
     }
 
-    var narrIdx;
-    if (q > 0.965) narrIdx = 5;
-    else { narrIdx = 0; for (var nx = 0; nx < 4; nx++) if (q >= tb.narrBounds[nx]) narrIdx = nx + 1; }
+    // side notes appear at their layer's pour and stay stuck
+    for (var nI = 0; nI < (tb.notes ? tb.notes.length : 0); nI++) {
+      var ns = tb.narrBounds[nI];
+      var ne = easeOutBack(smooth(ns, ns + 0.06, q));
+      tb.notes[nI].el.style.transform = 'scale(' + Math.max(0.001, ne).toFixed(3) + ') rotate(' + (nI % 2 ? 1.5 : -1.5) + 'deg)';
+      tb.notes[nI].el.style.opacity = ne > 0.02 ? '1' : '0';
+    }
+    var narrIdx = q > 0.965 ? 5 : 0;
     if (narrIdx !== tb.narrIdx) {
       tb.narrIdx = narrIdx;
       tb.narr.textContent = TB_NARR[narrIdx];
@@ -1383,93 +1429,29 @@
 
   window.__tbq = function (v) { updateToolboxScrolly(v); return 'q=' + v; };
 
-  // ---------- builds scrollytelling: the wall of work ----------
-  // All four case studies live on a 2×2 wall; scroll glides each one up to
-  // focus and back. Slow by design — the zoom spans ~40% of each chapter.
-  var bd = { built: false, cards: [], lastQ: -1, sq: null };
-  var BD_ACC = ['#D9412B', '#2E8F96', '#2470A0', '#8FAF9F'];
-  var BD_W = 0.235; // scrub width of each card's chapter
-
-  function buildBuildsScrolly() {
+  // ---------- builds: static cards that tilt toward the pointer ----------
+  function buildBuildsTilt() {
     var sec = document.getElementById('builds');
     if (reduced || !sec || !sec.classList) return;
-    var pinWrap = sec.querySelector('.pin-wrap');
-    var list = sec.querySelector('.bd-list');
+    if (!window.matchMedia('(pointer: fine)').matches) return;
     var cards = sec.querySelectorAll('.proj');
-    var dots = document.getElementById('bd-dots');
-    if (!pinWrap || !list || !dots || cards.length < 4) return;
+    var MAX = 6; // degrees
     for (var i = 0; i < cards.length; i++) {
-      var el = cards[i];
-      el.classList.remove('rv');
-      el.classList.remove('in');
-      var dot = document.createElement('span');
-      dot.className = 'bd-dot';
-      dot.style.background = BD_ACC[i] || BD_ACC[0];
-      dots.appendChild(dot);
-      bd.cards.push({ el: el, dot: dot });
-    }
-    bd.wrap = pinWrap;
-    bd.list = list;
-    sec.classList.add('scrolly');
-    bd.built = true;
-    layoutBuildsScrolly();
-  }
-
-  function layoutBuildsScrolly() {
-    if (!bd.built) return;
-    var lw = bd.list.clientWidth, lh = bd.list.clientHeight;
-    for (var i = 0; i < bd.cards.length; i++) {
-      var c = bd.cards[i];
-      var h = c.el.offsetHeight, w = c.el.offsetWidth;
-      c.scale = Math.min(1, (lh - 14) / Math.max(1, h));
-      c.restY = Math.max(4, (lh - h * c.scale) / 2);
-      c.gsc = Math.max(0.14, Math.min((lw * 0.45) / Math.max(1, w), (lh * 0.45) / Math.max(1, h)));
-      var gcx = lw * (i % 2 ? 0.735 : 0.265);
-      var gcy = lh * (i < 2 ? 0.26 : 0.74);
-      c.gtx = gcx - lw / 2;
-      c.gty = gcy - (h * c.gsc) / 2;
-    }
-    bd.wrapTop = bd.wrap.getBoundingClientRect().top + window.scrollY;
-    bd.wrapH = bd.wrap.offsetHeight;
-    bd.lm = [0]; // zone per focused card: chapter midpoints
-    for (var lmi = 0; lmi < 4; lmi++) bd.lm.push(0.03 + lmi * BD_W + BD_W / 2);
-    bd.lm.push(1);
-    bd.sq = null;
-    bd.lastQ = -1;
-  }
-
-  function updateBuildsScrolly(forcedQ) {
-    if (!bd.built) return;
-    var q = typeof forcedQ === 'number'
-      ? clamp01(forcedQ)
-      : drive(bd, 'sq', clamp01((window.scrollY - bd.wrapTop) / Math.max(1, bd.wrapH - H)), bd.lm || LM01, 0.28, function (v) { return bd.wrapTop + v * Math.max(1, bd.wrapH - H); });
-    if (typeof forcedQ !== 'number' && Math.abs(q - bd.lastQ) < 0.0004) return;
-    bd.lastQ = q;
-    var i, c, f;
-    // first pass: how focused is each card, and how focused is the most-focused one
-    var activeF = 0;
-    for (i = 0; i < bd.cards.length; i++) {
-      var p = clamp01((q - (0.03 + i * BD_W)) / BD_W);
-      var fIn = easeInOutCubic(smooth(0.04, 0.46, p));       // long, gliding zoom in…
-      var fOut = easeInOutCubic(smooth(0.56, 0.98, p));      // …brief hold, long glide back
-      f = (p <= 0 || p >= 1) ? 0 : Math.min(fIn, 1 - fOut);
-      bd.cards[i].f = f;
-      if (f > activeF) activeF = f;
-    }
-    for (i = 0; i < bd.cards.length; i++) {
-      c = bd.cards[i];
-      f = c.f;
-      var tx = c.gtx * (1 - f);
-      var ty = c.gty * (1 - f) + c.restY * f;
-      var sc = c.gsc + (c.scale - c.gsc) * f;
-      c.el.style.opacity = f > 0 ? '1' : (1 - 0.35 * activeF).toFixed(2); // spotlight: the wall dims a touch
-      c.el.style.zIndex = f > 0 ? '3' : '1';
-      c.el.style.transform = 'translate(calc(-50% + ' + tx.toFixed(1) + 'px),' + ty.toFixed(1) + 'px) scale(' + sc.toFixed(4) + ')';
-      c.dot.style.transform = 'scale(' + (1 + 0.3 * f).toFixed(2) + ')';
-      c.dot.style.opacity = (0.45 + 0.55 * f).toFixed(2);
+      (function (el) {
+        el.addEventListener('mousemove', function (e) {
+          var r = el.getBoundingClientRect();
+          var dx = ((e.clientX - r.left) / Math.max(1, r.width)) * 2 - 1;
+          var dy = ((e.clientY - r.top) / Math.max(1, r.height)) * 2 - 1;
+          el.style.transition = 'none';
+          el.style.transform = 'perspective(950px) rotateX(' + (-dy * MAX).toFixed(2) + 'deg) rotateY(' + (dx * MAX).toFixed(2) + 'deg) rotate(var(--tilt, 0deg)) scale(1.012)';
+        });
+        el.addEventListener('mouseleave', function () {
+          el.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1)';
+          el.style.transform = '';
+        });
+      })(cards[i]);
     }
   }
-  window.__bq = function (v) { updateBuildsScrolly(v); return 'q=' + v; };
 
   // ---------- off-hours & contact: light viewport-progress flourishes (no pinning) ----------
   var oh = { built: false, sr: null }, ct = { built: false, sr: null };
@@ -1584,8 +1566,8 @@
   function setScrollMode(m) {
     scrollMode = m;
     playLock.active = false; playLock.owner = null;
-    frame.sp = null; tb.sq = null; bd.sq = null; oh.sr = null; ct.sr = null;
-    frame._zt = tb._zt = bd._zt = oh._zt = ct._zt = undefined;
+    frame.sp = null; tb.sq = null; oh.sr = null; ct.sr = null;
+    frame._zt = tb._zt = oh._zt = ct._zt = undefined;
     if (modeChip) modeChip.textContent = 'scroll: ' + m + ' — tap to switch';
   }
   if (modeChip && modeChip.classList) {
@@ -1595,12 +1577,12 @@
     });
   }
   window.__mode = setScrollMode;
-  window.__tick = function () { updateToolboxScrolly(); updateBuildsScrolly(); updateFlourishes(); };
+  window.__tick = function () { updateToolboxScrolly(); updateFlourishes(); };
   setScrollMode(scrollMode);
 
   buildWaves();
   buildToolboxScrolly();
-  buildBuildsScrolly();
+  buildBuildsTilt();
   buildFlourishes();
   readScroll();
   if (reduced) {
