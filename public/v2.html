@@ -115,7 +115,13 @@
     font-weight: 800;
     font-size: 1.1rem;
     animation: bob 1.4s ease-in-out infinite;
+    font-family: inherit;
+    color: inherit;
+    padding: 0;
+    pointer-events: auto;   /* the sticker layer is pointer-events: none */
+    cursor: pointer;
   }
+  #cue:hover, #cue:focus-visible { background: var(--orange); }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
 
   /* ---------- chrome ---------- */
@@ -687,7 +693,7 @@
     <div class="role">AI Product Engineer · Full-Stack Developer</div>
     <h1>Noah Connolly</h1>
     <div id="bubble">Building is easy. <b>Building the right thing isn't.</b></div>
-    <div><span id="cue">↓</span></div>
+    <div><button id="cue" type="button" aria-label="Play the intro — watch the story scroll itself">↓</button></div>
   </div>
 </div>
 
@@ -1342,6 +1348,47 @@
     window.addEventListener('keydown', snapCancel, true);
   }
   window.__snapMark = nearestMark;
+
+  // ---------- guided intro: the cue button scrolls the hero story for you ----
+  // One click plays the smear and the trail map at watching pace; any input
+  // (wheel, touch, key, click elsewhere) hands control straight back.
+  var tour = { active: false, raf: 0, t0: 0, from: 0, to: 0, dur: 0 };
+  function tourCancel() {
+    if (!tour.active) return;
+    cancelAnimationFrame(tour.raf);
+    tour.active = false;
+  }
+  function tourStep(now) {
+    if (!tour.active) return;
+    var u = Math.min(1, (now - tour.t0) / tour.dur);
+    window.scrollTo(0, tour.from + (tour.to - tour.from) * easeInOutCubic(u));
+    if (u >= 1) { tour.active = false; return; }
+    tour.raf = requestAnimationFrame(tourStep);
+  }
+  var cueBtn = document.getElementById('cue');
+  if (cueBtn && cueBtn.addEventListener) {
+    cueBtn.addEventListener('click', function () {
+      var target = H * 5;                    // smear done, trail drawn
+      if (reduced) { window.scrollTo(0, target); return; }
+      glideCancel();
+      snapCancel();
+      tourCancel();
+      tour.active = true;
+      tour.from = window.scrollY;
+      tour.to = target;
+      tour.dur = 6500;
+      tour.t0 = performance.now();
+      tour.raf = requestAnimationFrame(tourStep);
+    });
+    window.addEventListener('wheel', tourCancel, { passive: true });
+    window.addEventListener('touchstart', tourCancel, { passive: true });
+    window.addEventListener('keydown', tourCancel, true);
+    window.addEventListener('mousedown', function (e) {
+      if (e.target !== cueBtn) tourCancel();
+    }, true);
+  }
+  window.__tourStep = tourStep;
+  window.__tourState = tour;
 
   // ---------- frame ----------
   var startTime = null;
