@@ -35,6 +35,11 @@ jobs:
           # Public contact email baked into the static build (the mailto: target).
           VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
 
+      # v2 is the site: the scrollytelling page (public/v2.html) serves as the
+      # homepage. The legacy Vue SPA is retired — still built, no longer routed.
+      - name: Promote v2 to homepage
+        run: cp dist/v2.html dist/index.html
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:

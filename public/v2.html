@@ -186,7 +186,7 @@
     flex: 0 1 auto;
   }
   #road svg { display: block; width: 100%; height: auto; }
-  #road polyline {
+  #road .dots {
     fill: none;
     stroke: var(--ink);
     stroke-width: 9;
@@ -196,9 +196,26 @@
     animation: march 1.6s linear infinite;
   }
   @media (prefers-reduced-motion: reduce) {
-    #road polyline, #cue { animation: none !important; }
+    #road .dots, #cue, #road-hiker .hiker-ring { animation: none !important; }
   }
   @keyframes march { to { stroke-dashoffset: -46; } }
+  #road .map-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; fill: rgba(29, 45, 80, 0.55); }
+  #road-topo path { fill: none; stroke: rgba(29, 45, 80, 0.09); stroke-width: 2; }
+  #road-compass .cmp-ring { fill: none; stroke: rgba(29, 45, 80, 0.4); stroke-width: 2.5; }
+  #road-compass .cmp-needle { fill: var(--rust); stroke: var(--ink); stroke-width: 1.5; }
+  #road-wps circle { fill: var(--amber); stroke: var(--ink); stroke-width: 2.5; }
+  #road-hiker .hiker-dot { fill: var(--rust); stroke: var(--ink); stroke-width: 2; }
+  #road-hiker .hiker-ring {
+    fill: none;
+    stroke: var(--rust);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: hikerPulse 1.6s ease-out infinite;
+  }
+  @keyframes hikerPulse {
+    0% { transform: scale(0.55); opacity: 0.9; stroke-width: 3; }
+    100% { transform: scale(1.7); opacity: 0; stroke-width: 1.5; }
+  }
   .badge {
     position: absolute;
     transform: translate(-50%, -50%) rotate(var(--tilt)) scale(0);
@@ -241,7 +258,7 @@
   }
 
   /* ---------- page flow ---------- */
-  #spacer { height: 300vh; }
+  #spacer { height: 600vh; }
   main { position: relative; z-index: 6; }
 
   .sec { position: relative; padding: 4.6rem 1.4rem 4.8rem; }
@@ -255,6 +272,10 @@
     width: 100%; height: 42px;
     display: block;
   }
+  /* wavy edge that belongs to the section below it, reaching UP over the
+     fixed scene — used where the section borders the hero canvas, so the
+     section color is the only border */
+  .divider-up { top: -41px; }
 
   .chip {
     display: inline-block;
@@ -381,6 +402,9 @@
     border: 3px solid var(--ink);
     border-radius: 10px;
     box-shadow: 4px 4px 0 var(--ink);
+    background-color: var(--sand);
+    background-size: cover;
+    background-position: center;
   }
   .oh-note { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: rgba(29, 45, 80, 0.5); margin-top: 0.7rem; text-transform: uppercase; }
   .music-bars { display: flex; gap: 5px; align-items: flex-end; height: 58px; margin-top: 0.4rem; }
@@ -498,7 +522,7 @@
   #toolbox .pin-wrap { position: relative; }
   #toolbox .tb-zone { display: none; }
   #toolbox.scrolly { padding: 0; }
-  #toolbox.scrolly .pin-wrap { height: 330vh; }
+  #toolbox.scrolly .pin-wrap { height: 420vh; }
   #toolbox.scrolly .pin {
     position: sticky;
     top: 0;
@@ -600,6 +624,9 @@
   @media (max-width: 480px) {
     .fly-tag { font-size: 0.52rem; padding: 0.16rem 0.34rem; }
   }
+  @media (max-width: 900px) {
+    .tb-note { display: none; }  /* notes need real margin beside the pyramid */
+  }
 
   /* scroll reveals (JS-gated so the page reads fine without JS) */
   .js .rv {
@@ -623,7 +650,24 @@
     <h2>The path so far</h2>
     <div id="road">
       <svg viewBox="0 0 400 520" aria-hidden="true">
-        <polyline points="60,470 330,410 70,300 330,190 200,60"></polyline>
+        <defs>
+          <mask id="road-mask" maskUnits="userSpaceOnUse">
+            <polyline id="road-draw" points="60,470 330,410 70,300 330,190 200,60" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </mask>
+        </defs>
+        <g id="road-topo"></g>
+        <g id="road-compass" transform="translate(354 46) rotate(-8)">
+          <circle class="cmp-ring" r="16"></circle>
+          <path class="cmp-needle" d="M0 -12 L4 0 L0 12 L-4 0 Z"></path>
+          <text class="map-label" y="-22" text-anchor="middle">N</text>
+        </g>
+        <text class="map-label" x="30" y="498">TRAILHEAD</text>
+        <polyline class="dots" points="60,470 330,410 70,300 330,190 200,60" mask="url(#road-mask)"></polyline>
+        <g id="road-wps"></g>
+        <g id="road-hiker" style="opacity: 0;">
+          <circle class="hiker-ring" r="10"></circle>
+          <circle class="hiker-dot" r="4.5"></circle>
+        </g>
       </svg>
       <div id="burst"></div>
       <div class="badge" style="--bg: var(--teal);  --fg: var(--cream); --tilt: -2.4deg; left: 27%; top: 90%;"><span class="yr">2021</span><span class="t">Ball State — CS + Oboe</span></div>
@@ -653,7 +697,7 @@
 <main>
   <!-- Scene 03 · Toolbox -->
   <section class="sec ink" id="toolbox">
-    <svg class="divider" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L100 0 L100 3 C 82 8.5, 64 1.5, 48 5 C 30 9, 14 3, 0 7 Z" fill="#F6EDDC"/></svg>
+    <svg class="divider divider-up" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 7 C 14 3, 30 9, 48 5 C 64 1.5, 82 8.5, 100 3 L100 12 L0 12 Z" fill="#1D2D50"/></svg>
     <div class="pin-wrap">
     <div class="pin">
     <div class="sec-inner tb-head">
@@ -797,6 +841,81 @@
   var revealInner = document.getElementById('reveal-inner');
   var burst = document.getElementById('burst');
   var badges = Array.prototype.slice.call(document.querySelectorAll('.badge'));
+  // the trail draws itself outward; badges pop as the line front reaches them
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var roadDraw = document.getElementById('road-draw');
+  var roadTopo = document.getElementById('road-topo');
+  var roadWps = document.getElementById('road-wps');
+  var roadHiker = document.getElementById('road-hiker');
+  var roadPts = [[60, 470], [330, 410], [70, 300], [330, 190], [200, 60]];
+  var roadSegs = [], roadLen = 0;
+  for (var rp = 1; rp < roadPts.length; rp++) {
+    var rsl = Math.hypot(roadPts[rp][0] - roadPts[rp - 1][0], roadPts[rp][1] - roadPts[rp - 1][1]);
+    roadSegs.push(rsl);
+    roadLen += rsl;
+  }
+  function roadPointAt(frac) {
+    var target = Math.max(0, Math.min(1, frac)) * roadLen;
+    for (var s = 0; s < roadSegs.length; s++) {
+      if (target <= roadSegs[s] || s === roadSegs.length - 1) {
+        var t = roadSegs[s] > 0 ? Math.min(1, target / roadSegs[s]) : 0;
+        var a = roadPts[s], b = roadPts[s + 1];
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      }
+      target -= roadSegs[s];
+    }
+    return roadPts[roadPts.length - 1];
+  }
+  var BADGE_AT = [0.05, 0.22, 0.5, 1];   // fraction of the trail each badge sits at
+  if (roadDraw) {
+    roadDraw.style.strokeDasharray = roadLen.toFixed(1);
+    roadDraw.style.strokeDashoffset = roadLen.toFixed(1);
+  }
+  // topo contours: rings of jittered radius around a few peaks, seeded so the
+  // map draws the same on every visit
+  if (roadTopo) {
+    var tseed = 7;
+    var trnd = function () { tseed = (tseed * 16807) % 2147483647; return (tseed - 1) / 2147483646; };
+    var peaks = [[200, 58, 4, 26], [348, 452, 4, 22], [36, 120, 3, 18]];
+    for (var pk = 0; pk < peaks.length; pk++) {
+      var pcx = peaks[pk][0], pcy = peaks[pk][1];
+      for (var rg = 0; rg < peaks[pk][2]; rg++) {
+        var R = peaks[pk][3] * (1 + rg * 0.85);
+        var ring = [];
+        for (var an = 0; an < 20; an++) {
+          var th = (an / 20) * Math.PI * 2;
+          var rr = R * (1 + (trnd() - 0.5) * 0.24);
+          ring.push([pcx + Math.cos(th) * rr, pcy + Math.sin(th) * rr * 0.82]);
+        }
+        var rd0 = '';
+        for (var mq = 0; mq < 20; mq++) {
+          var nxp = ring[(mq + 1) % 20];
+          var midx = ((ring[mq][0] + nxp[0]) / 2).toFixed(1);
+          var midy = ((ring[mq][1] + nxp[1]) / 2).toFixed(1);
+          if (!rd0) rd0 = 'M' + midx + ' ' + midy;
+          else rd0 += ' Q ' + ring[mq][0].toFixed(1) + ' ' + ring[mq][1].toFixed(1) + ' ' + midx + ' ' + midy;
+        }
+        var m0 = rd0.slice(1, rd0.indexOf(' Q'));
+        rd0 += ' Q ' + ring[0][0].toFixed(1) + ' ' + ring[0][1].toFixed(1) + ' ' + m0 + ' Z';
+        var tpath = document.createElementNS(SVG_NS, 'path');
+        tpath.setAttribute('d', rd0);
+        roadTopo.appendChild(tpath);
+      }
+    }
+  }
+  // waypoint dots pinned to the trail at each badge's arrival point
+  var roadWpEls = [];
+  if (roadWps) {
+    for (var wq = 0; wq < BADGE_AT.length; wq++) {
+      var wc = document.createElementNS(SVG_NS, 'circle');
+      var wxy = roadPointAt(BADGE_AT[wq]);
+      wc.setAttribute('cx', wxy[0].toFixed(1));
+      wc.setAttribute('cy', wxy[1].toFixed(1));
+      wc.setAttribute('r', '0');
+      roadWps.appendChild(wc);
+      roadWpEls.push(wc);
+    }
+  }
   var fpsEl = document.getElementById('fps');
   var NS = 'http://www.w3.org/2000/svg';
 
@@ -1029,54 +1148,72 @@
   // ---------- scroll ----------
   var scrollTarget = 0, p = 0;
   function readScroll() {
-    // the intro choreography owns the 300vh spacer (200vh of scroll) — anchored to the
+    // the intro choreography owns the 600vh spacer (500vh of scroll) — anchored to the
     // viewport, not total page height, so adding sections never compresses the wash
-    scrollTarget = H > 0 ? clamp01(window.scrollY / (H * 2)) : 0;
+    scrollTarget = H > 0 ? clamp01(window.scrollY / (H * 5)) : 0;
   }
   window.addEventListener('scroll', readScroll, { passive: true });
 
-  // scroll driver mode: 'scrub' = position drives progress (weighted);
-  // 'play' = crossing a zone landmark plays the animation at a fixed, authored speed
+  // scroll driver mode: 'scrub' (default) = scroll position drives progress
+  // directly (weighted), with snap-on-settle easing scenes to rest composed;
+  // 'play' (?mode=play) = crossing into a zone plays it at an authored pace
   var scrollMode = (typeof location !== 'undefined' && /[?&]mode=play/.test(location.search)) ? 'play' : 'scrub';
   var dtSec = 0.016;
   var LM01 = [0, 1];
 
   // playback lock: while a zone is playing, the page holds still — one zone per gesture
-  var playLock = { active: false, y: 0, owner: null };
+  var playLock = { active: false, y: 0, fromY: 0, toY: 0, owner: null };
   function lockScroll(owner, y) {
+    glideCancel();
     playLock.active = true;
     playLock.owner = owner;
-    playLock.y = Math.max(0, y);
-    window.scrollTo(0, playLock.y);
+    playLock.fromY = window.scrollY;
+    playLock.toY = Math.max(0, y);
+    playLock.y = playLock.fromY;
   }
   function unlockScroll(owner) {
     if (playLock.owner === owner) { playLock.active = false; playLock.owner = null; }
   }
 
-  // fixed-rate mover: progress plays toward the next landmark at `rate` units/sec.
-  // Never advances more than one zone per gesture; locks the scroll while playing.
+  // zone player: a deliberate push past a landmark (12% into the gap) commits the
+  // zone — it plays out at an authored pace, eased in and out, while the page
+  // glides to the zone boundary in sync so scroll and animation read as one
+  // gesture. Input is locked during playback; one zone per crossing.
   function drive(o, k, raw, lms, rate, toScroll) {
     if (scrollMode !== 'play') return follow(o, k, raw);
-    var i, ci = 0, ti = 0;
+    var i, ci = 0;
     var cur = o[k];
     if (cur === null || cur === undefined) {
-      for (i = 0; i < lms.length; i++) if (raw >= lms[i] - 0.001) ti = i;
-      o[k] = lms[ti];
-      o._zt = lms[ti];
+      for (i = 0; i < lms.length; i++) if (raw >= lms[i] - 0.001) ci = i;
+      o[k] = lms[ci];
+      o._zi = ci;
+      o._ph = 1;
       return o[k];
     }
-    for (i = 0; i < lms.length; i++) if (cur >= lms[i] - 0.0005) ci = i;
-    for (i = 0; i < lms.length; i++) if (raw >= lms[i] - 0.001) ti = i;
-    if (ti > ci + 1) ti = ci + 1;
-    if (ti < ci - 1) ti = ci - 1;
-    var t = lms[ti];
-    if (t !== o._zt) {
-      o._zt = t;
-      if (toScroll && t !== cur) lockScroll(o, toScroll(lms[ti]));
+    if (o._ph < 1) {                                   // zone is playing out
+      o._ph = Math.min(1, o._ph + dtSec / o._dur);
+      var u = easeInOutCubic(o._ph);
+      cur = o._from + (o._to - o._from) * u;
+      if (playLock.owner === o) {
+        playLock.y = playLock.fromY + (playLock.toY - playLock.fromY) * u;
+        window.scrollTo(0, playLock.y);
+      }
+      if (o._ph >= 1) { cur = o._to; unlockScroll(o); }
+      o[k] = cur;
+      return cur;
     }
-    var d = t - cur, step = rate * dtSec;
-    if (Math.abs(d) <= step) { cur = t; unlockScroll(o); }
-    else cur += (d > 0 ? step : -step);
+    ci = o._zi || 0;
+    var ni = -1;
+    if (ci < lms.length - 1 && raw >= lms[ci] + (lms[ci + 1] - lms[ci]) * 0.12) ni = ci + 1;
+    else if (ci > 0 && raw <= lms[ci] - (lms[ci] - lms[ci - 1]) * 0.12) ni = ci - 1;
+    if (ni >= 0) {
+      o._zi = ni;
+      o._from = cur;
+      o._to = lms[ni];
+      o._ph = 0;
+      o._dur = Math.max(0.5, Math.abs(o._to - cur) / rate);
+      if (toScroll) lockScroll(o, toScroll(o._to));
+    }
     o[k] = cur;
     return cur;
   }
@@ -1086,7 +1223,7 @@
     var cur = o[k];
     if (cur === null || cur === undefined) cur = target;
     else {
-      cur += (target - cur) * 0.16;
+      cur += (target - cur) * 0.11;
       if (Math.abs(target - cur) < 0.0006) cur = target;
     }
     o[k] = cur;
@@ -1115,10 +1252,7 @@
   }
   if (!reduced && window.matchMedia('(pointer: fine)').matches) {
     window.addEventListener('wheel', function (e) {
-      if (scrollMode === 'play') {
-        if (playLock.active) e.preventDefault();              // zone is playing: hold the page
-        return;                                               // otherwise native wheel, no glide
-      }
+      if (playLock.active) { e.preventDefault(); return; }    // zone is playing: hold the page
       if (e.ctrlKey) return;                                  // pinch-zoom
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;    // horizontal scrollers
       e.preventDefault();
@@ -1147,6 +1281,68 @@
     }, { passive: false });
   }
 
+  // ---------- snap-on-settle (scrub mode): when scrolling comes to rest within
+  // reach of a scene landmark, the page eases the last stretch so scenes rest
+  // composed. Nearest landmark only, capture radius 45% of a viewport, and any
+  // input — wheel, touch, key, scrollbar — cancels it instantly.
+  var snap = { active: false, target: 0, raf: 0, timer: 0, touching: false };
+  function nearestMark(y) {
+    var marks = [0, H * 5];                                   // hero intact / wash complete
+    if (tb.wrapTop !== undefined) {
+      marks.push(tb.wrapTop);                                 // toolbox closed, pre-pour
+      marks.push(tb.wrapTop + Math.max(1, tb.wrapH - H));     // pyramid complete
+    }
+    var best = -1, bestD = H * 0.45;
+    for (var i = 0; i < marks.length; i++) {
+      var d = Math.abs(y - marks[i]);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return (best < 0 || bestD < 2) ? null : marks[best];
+  }
+  function snapCancel() {
+    if (snap.timer) { clearTimeout(snap.timer); snap.timer = 0; }
+    if (!snap.active) return;
+    cancelAnimationFrame(snap.raf);
+    snap.active = false;
+  }
+  function snapStep() {
+    var cur = window.scrollY;
+    var d = snap.target - cur;
+    if (Math.abs(d) < 0.6) {
+      window.scrollTo(0, snap.target);
+      snap.active = false;
+      return;
+    }
+    window.scrollTo(0, cur + d * 0.05);
+    snap.raf = requestAnimationFrame(snapStep);
+  }
+  function trySnap() {
+    snap.timer = 0;
+    if (scrollMode !== 'scrub' || reduced || snap.active || glide.active || snap.touching) return;
+    var t = nearestMark(window.scrollY);
+    if (t === null) return;
+    snap.target = t;
+    snap.active = true;
+    snap.raf = requestAnimationFrame(snapStep);
+  }
+  if (!reduced) {
+    window.addEventListener('scroll', function () {
+      if (snap.active) return;                                // our own settle in progress
+      if (snap.timer) clearTimeout(snap.timer);
+      snap.timer = setTimeout(trySnap, 140);
+    }, { passive: true });
+    window.addEventListener('touchstart', function () { snap.touching = true; snapCancel(); }, { passive: true });
+    window.addEventListener('touchend', function () {
+      snap.touching = false;
+      if (snap.timer) clearTimeout(snap.timer);
+      snap.timer = setTimeout(trySnap, 180);
+    }, { passive: true });
+    window.addEventListener('wheel', snapCancel, { passive: true });
+    window.addEventListener('mousedown', snapCancel, true);
+    window.addEventListener('keydown', snapCancel, true);
+  }
+  window.__snapMark = nearestMark;
+
   // ---------- frame ----------
   var startTime = null;
 
@@ -1155,8 +1351,8 @@
     var time = (now - startTime) / 1000;
     dtSec = Math.min(0.05, Math.max(0.001, (now - (frame.lastNow || now)) / 1000));
     frame.lastNow = now;
-    if (scrollMode === 'play' && !reduced) p = drive(frame, 'sp', scrollTarget, LM01, 0.4, function (v) { return v * H * 2; });
-    else p += (scrollTarget - p) * (reduced ? 1 : 0.11);
+    if (scrollMode === 'play' && !reduced) p = drive(frame, 'sp', scrollTarget, LM01, 0.4, function (v) { return v * H * 5; });
+    else p += (scrollTarget - p) * (reduced ? 1 : 0.09);
     render(time);
     updateToolboxScrolly();
     updateFlourishes();
@@ -1164,6 +1360,15 @@
     tickFPS(now);
     if (!document.hidden) raf = requestAnimationFrame(frame);
   }
+  // the loop parks itself while the tab is hidden — restart it on return,
+  // else a frame delivered mid-tab-switch kills the animation permanently
+  document.addEventListener('visibilitychange', function () {
+    cancelAnimationFrame(raf);
+    if (!document.hidden) {
+      frame.lastNow = 0;
+      raf = requestAnimationFrame(frame);
+    }
+  });
 
   function render(time) {
     // hero sticker out
@@ -1172,7 +1377,7 @@
     sticker.style.transform = 'rotate(-1.2deg) scale(' + (1 - sOut * 0.1).toFixed(3) + ') translateY(' + (-sOut * 40).toFixed(1) + 'px)';
     sticker.parentElement.style.visibility = sOut >= 0.999 ? 'hidden' : 'visible';
 
-    var m = smooth(0.13, 0.5, p);
+    var m = smooth(0.1, 0.6, p);
     var wash = VARIANTS[washKey];
 
     for (var i = 0; i < strips.length; i++) {
@@ -1193,13 +1398,22 @@
       setStrip(b, time, wash.ampMul ? wash.ampMul(e) : 1, df && df.top, df && df.bot, capS);
     }
 
-    // reveal parallax + badge pops
-    revealInner.style.transform = 'translateY(' + ((1 - smooth(0.13, 0.55, p)) * 40).toFixed(1) + 'px)';
-    for (var bd = 0; bd < badges.length; bd++) {
-      var bp = easeOutBack(smooth(0.42 + bd * 0.085, 0.5 + bd * 0.085, p));
-      badges[bd].style.transform = 'translate(-50%, -50%) rotate(var(--tilt)) scale(' + Math.max(0, bp).toFixed(3) + ')';
+    // reveal parallax + road draw; badges pop as the line front arrives
+    revealInner.style.transform = 'translateY(' + ((1 - smooth(0.1, 0.62, p)) * 40).toFixed(1) + 'px)';
+    var rd = smooth(0.58, 0.86, p);
+    if (roadDraw) roadDraw.style.strokeDashoffset = (roadLen * (1 - rd)).toFixed(1);
+    if (roadHiker) {
+      var hxy = roadPointAt(rd);
+      roadHiker.setAttribute('transform', 'translate(' + hxy[0].toFixed(1) + ' ' + hxy[1].toFixed(1) + ')');
+      roadHiker.style.opacity = (rd > 0.004 && rd < 0.996) ? '1' : '0';
     }
-    var burstP = easeOutBack(smooth(0.72, 0.8, p));
+    for (var bd = 0; bd < badges.length; bd++) {
+      var pf = 0.58 + BADGE_AT[bd] * 0.28;
+      var bp = easeOutBack(smooth(pf - 0.015, pf + 0.055, p));
+      badges[bd].style.transform = 'translate(-50%, -50%) rotate(var(--tilt)) scale(' + Math.max(0, bp).toFixed(3) + ')';
+      if (roadWpEls[bd]) roadWpEls[bd].setAttribute('r', (7 * Math.max(0, bp)).toFixed(2));
+    }
+    var burstP = easeOutBack(smooth(0.78, 0.86, p));
     burst.style.transform = 'translate(-50%, -50%) scale(' + Math.max(0, burstP).toFixed(3) + ') rotate(' + (p * 60).toFixed(1) + 'deg)';
   }
 
@@ -1561,13 +1775,14 @@
     for (var r = 0; r < rvs.length; r++) io.observe(rvs[r]);
   }
 
-  // scrub ↔ play toggle (dev chip; prod supports ?mode=play with no visible UI)
+  // scrub ↔ play toggle (dev chip; prod defaults to play, ?mode=scrub opts out)
   var modeChip = document.getElementById('mode-toggle');
   function setScrollMode(m) {
     scrollMode = m;
     playLock.active = false; playLock.owner = null;
     frame.sp = null; tb.sq = null; oh.sr = null; ct.sr = null;
-    frame._zt = tb._zt = oh._zt = ct._zt = undefined;
+    frame._zi = tb._zi = oh._zi = ct._zi = undefined;
+    frame._ph = tb._ph = oh._ph = ct._ph = undefined;
     if (modeChip) modeChip.textContent = 'scroll: ' + m + ' — tap to switch';
   }
   if (modeChip && modeChip.classList) {
