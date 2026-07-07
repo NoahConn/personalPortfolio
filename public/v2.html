@@ -1008,6 +1008,58 @@
   }
   window.addEventListener('scroll', readScroll, { passive: true });
 
+  // exponentially smoothed follower — gives every scroll-driven value the same weight
+  function follow(o, k, target) {
+    var cur = o[k];
+    if (cur === null || cur === undefined) cur = target;
+    else {
+      cur += (target - cur) * 0.16;
+      if (Math.abs(target - cur) < 0.0006) cur = target;
+    }
+    o[k] = cur;
+    return cur;
+  }
+
+  // ---------- scroll weight: Lenis-style wheel glide (fine pointers only) ----------
+  // Wheel input accumulates into a target; the page lerps toward it with momentum.
+  // Touch, keyboard, and scrollbar stay fully native.
+  var glide = { active: false, target: 0, raf: 0 };
+  function glideStep() {
+    var cur = window.scrollY;
+    var d = glide.target - cur;
+    if (Math.abs(d) < 0.6) {
+      window.scrollTo(0, glide.target);
+      glide.active = false;
+      return;
+    }
+    window.scrollTo(0, cur + d * 0.12);
+    glide.raf = requestAnimationFrame(glideStep);
+  }
+  function glideCancel() {
+    if (!glide.active) return;
+    cancelAnimationFrame(glide.raf);
+    glide.active = false;
+  }
+  if (!reduced && window.matchMedia('(pointer: fine)').matches) {
+    window.addEventListener('wheel', function (e) {
+      if (e.ctrlKey) return;                                  // pinch-zoom
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;    // horizontal scrollers
+      e.preventDefault();
+      var dy = e.deltaY;
+      if (e.deltaMode === 1) dy *= 16;
+      else if (e.deltaMode === 2) dy *= H;
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      var base = glide.active ? glide.target : window.scrollY;
+      glide.target = Math.max(0, Math.min(max, base + dy));
+      if (!glide.active) {
+        glide.active = true;
+        glide.raf = requestAnimationFrame(glideStep);
+      }
+    }, { passive: false });
+    window.addEventListener('mousedown', glideCancel, true);  // grabbing the scrollbar wins
+    window.addEventListener('keydown', glideCancel, true);    // keyboard scrolling wins
+  }
+
   // ---------- frame ----------
   var startTime = null;
 
@@ -1115,7 +1167,7 @@
   });
 
   // ---------- toolbox scrollytelling: the stack builds itself ----------
-  var tb = { built: false, chips: [], layers: [], lastQ: -1, narrIdx: -1 };
+  var tb = { built: false, chips: [], layers: [], lastQ: -1, narrIdx: -1, sq: null };
   var TB_NARR = [
     'Six years of tools — packed into one box. Keep scrolling.',
     '01 · The foundation — languages & frameworks. Both sides of the wire.',
@@ -1203,6 +1255,7 @@
     for (L = 1; L < 4; L++) tb.narrBounds[L] = 0.10 + 0.72 * (tb.layers[L].start / (N - 1));
     tb.wrapTop = tb.wrap.getBoundingClientRect().top + window.scrollY;
     tb.wrapH = tb.wrap.offsetHeight;
+    tb.sq = null;
     tb.lastQ = -1;
     tb.narrIdx = -1;
   }
@@ -1211,7 +1264,7 @@
     if (!tb.built) return;
     var q = typeof forcedQ === 'number'
       ? clamp01(forcedQ)
-      : clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H));
+      : follow(tb, 'sq', clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H)));
     if (typeof forcedQ !== 'number' && Math.abs(q - tb.lastQ) < 0.0004) return;
     tb.lastQ = q;
     var N = tb.chips.length;
@@ -1261,7 +1314,7 @@
   // ---------- builds scrollytelling: the wall of work ----------
   // All four case studies live on a 2×2 wall; scroll glides each one up to
   // focus and back. Slow by design — the zoom spans ~40% of each chapter.
-  var bd = { built: false, cards: [], lastQ: -1 };
+  var bd = { built: false, cards: [], lastQ: -1, sq: null };
   var BD_ACC = ['#D9412B', '#2E8F96', '#2470A0', '#8FAF9F'];
   var BD_W = 0.235; // scrub width of each card's chapter
 
@@ -1306,6 +1359,7 @@
     }
     bd.wrapTop = bd.wrap.getBoundingClientRect().top + window.scrollY;
     bd.wrapH = bd.wrap.offsetHeight;
+    bd.sq = null;
     bd.lastQ = -1;
   }
 
@@ -1313,7 +1367,7 @@
     if (!bd.built) return;
     var q = typeof forcedQ === 'number'
       ? clamp01(forcedQ)
-      : clamp01((window.scrollY - bd.wrapTop) / Math.max(1, bd.wrapH - H));
+      : follow(bd, 'sq', clamp01((window.scrollY - bd.wrapTop) / Math.max(1, bd.wrapH - H)));
     if (typeof forcedQ !== 'number' && Math.abs(q - bd.lastQ) < 0.0004) return;
     bd.lastQ = q;
     var i, c, f;
@@ -1343,7 +1397,7 @@
   window.__bq = function (v) { updateBuildsScrolly(v); return 'q=' + v; };
 
   // ---------- off-hours & contact: light viewport-progress flourishes (no pinning) ----------
-  var oh = { built: false }, ct = { built: false };
+  var oh = { built: false, sr: null }, ct = { built: false, sr: null };
 
   function buildFlourishes() {
     if (reduced) return;
@@ -1382,12 +1436,14 @@
     if (oh.built) {
       oh.top = oh.sec.getBoundingClientRect().top + window.scrollY;
       oh.pw = oh.pcs[0].offsetWidth;
+      oh.sr = null;
       oh.lastR = -1;
     }
     if (ct.built) {
       ct.top = ct.sec.getBoundingClientRect().top + window.scrollY;
       ct.aw = ct.art.clientWidth;
       ct.ah = ct.art.clientHeight;
+      ct.sr = null;
       ct.lastR = -1;
     }
   }
@@ -1395,7 +1451,7 @@
   function updateFlourishes(fOh, fCt) {
     var sy = window.scrollY;
     if (oh.built) {
-      var r = typeof fOh === 'number' ? clamp01(fOh) : clamp01((sy + H * 0.88 - oh.top) / (H * 0.8));
+      var r = typeof fOh === 'number' ? clamp01(fOh) : follow(oh, 'sr', clamp01((sy + H * 0.88 - oh.top) / (H * 0.8)));
       if (typeof fOh === 'number' || Math.abs(r - oh.lastR) > 0.0005) {
         oh.lastR = r;
         // the photos land on the table and spread out
@@ -1410,7 +1466,7 @@
       }
     }
     if (ct.built) {
-      var r2 = typeof fCt === 'number' ? clamp01(fCt) : clamp01((sy + H * 0.92 - ct.top) / (H * 0.85));
+      var r2 = typeof fCt === 'number' ? clamp01(fCt) : follow(ct, 'sr', clamp01((sy + H * 0.92 - ct.top) / (H * 0.85)));
       if (typeof fCt === 'number' || Math.abs(r2 - ct.lastR) > 0.0005) {
         ct.lastR = r2;
         // the paper plane arcs in over the headline and lands; its trail draws behind it
