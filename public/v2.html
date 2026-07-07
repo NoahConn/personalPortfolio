@@ -1021,17 +1021,42 @@
   var dtSec = 0.016;
   var LM01 = [0, 1];
 
-  // fixed-rate mover: progress chases the nearest landmark at `rate` units/sec
-  function drive(o, k, raw, lms, rate) {
+  // playback lock: while a zone is playing, the page holds still — one zone per gesture
+  var playLock = { active: false, y: 0, owner: null };
+  function lockScroll(owner, y) {
+    playLock.active = true;
+    playLock.owner = owner;
+    playLock.y = Math.max(0, y);
+    window.scrollTo(0, playLock.y);
+  }
+  function unlockScroll(owner) {
+    if (playLock.owner === owner) { playLock.active = false; playLock.owner = null; }
+  }
+
+  // fixed-rate mover: progress plays toward the next landmark at `rate` units/sec.
+  // Never advances more than one zone per gesture; locks the scroll while playing.
+  function drive(o, k, raw, lms, rate, toScroll) {
     if (scrollMode !== 'play') return follow(o, k, raw);
-    var t = lms[0];
-    for (var li = 0; li < lms.length; li++) if (raw >= lms[li] - 0.001) t = lms[li];
+    var i, ci = 0, ti = 0;
     var cur = o[k];
-    if (cur === null || cur === undefined) cur = t;
-    else {
-      var d = t - cur, step = rate * dtSec;
-      cur = Math.abs(d) <= step ? t : cur + (d > 0 ? step : -step);
+    if (cur === null || cur === undefined) {
+      for (i = 0; i < lms.length; i++) if (raw >= lms[i] - 0.001) ti = i;
+      o[k] = lms[ti];
+      o._zt = lms[ti];
+      return o[k];
     }
+    for (i = 0; i < lms.length; i++) if (cur >= lms[i] - 0.0005) ci = i;
+    for (i = 0; i < lms.length; i++) if (raw >= lms[i] - 0.001) ti = i;
+    if (ti > ci + 1) ti = ci + 1;
+    if (ti < ci - 1) ti = ci - 1;
+    var t = lms[ti];
+    if (t !== o._zt) {
+      o._zt = t;
+      if (toScroll && t !== cur) lockScroll(o, toScroll(lms[ti]));
+    }
+    var d = t - cur, step = rate * dtSec;
+    if (Math.abs(d) <= step) { cur = t; unlockScroll(o); }
+    else cur += (d > 0 ? step : -step);
     o[k] = cur;
     return cur;
   }
@@ -1070,6 +1095,10 @@
   }
   if (!reduced && window.matchMedia('(pointer: fine)').matches) {
     window.addEventListener('wheel', function (e) {
+      if (scrollMode === 'play') {
+        if (playLock.active) e.preventDefault();              // zone is playing: hold the page
+        return;                                               // otherwise native wheel, no glide
+      }
       if (e.ctrlKey) return;                                  // pinch-zoom
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;    // horizontal scrollers
       e.preventDefault();
@@ -1087,6 +1116,16 @@
     window.addEventListener('mousedown', glideCancel, true);  // grabbing the scrollbar wins
     window.addEventListener('keydown', glideCancel, true);    // keyboard scrolling wins
   }
+  if (!reduced) {
+    window.addEventListener('touchmove', function (e) {
+      if (playLock.active) e.preventDefault();
+    }, { passive: false });
+    window.addEventListener('keydown', function (e) {
+      if (!playLock.active) return;
+      var kk = e.key;
+      if (kk === ' ' || kk === 'ArrowDown' || kk === 'ArrowUp' || kk === 'PageDown' || kk === 'PageUp' || kk === 'Home' || kk === 'End') e.preventDefault();
+    }, { passive: false });
+  }
 
   // ---------- frame ----------
   var startTime = null;
@@ -1096,12 +1135,13 @@
     var time = (now - startTime) / 1000;
     dtSec = Math.min(0.05, Math.max(0.001, (now - (frame.lastNow || now)) / 1000));
     frame.lastNow = now;
-    if (scrollMode === 'play' && !reduced) p = drive(frame, 'sp', scrollTarget, LM01, 0.4);
+    if (scrollMode === 'play' && !reduced) p = drive(frame, 'sp', scrollTarget, LM01, 0.4, function (v) { return v * H * 2; });
     else p += (scrollTarget - p) * (reduced ? 1 : 0.11);
     render(time);
     updateToolboxScrolly();
     updateBuildsScrolly();
     updateFlourishes();
+    if (playLock.active && Math.abs(window.scrollY - playLock.y) > 1) window.scrollTo(0, playLock.y);
     tickFPS(now);
     if (!document.hidden) raf = requestAnimationFrame(frame);
   }
@@ -1296,7 +1336,7 @@
     if (!tb.built) return;
     var q = typeof forcedQ === 'number'
       ? clamp01(forcedQ)
-      : drive(tb, 'sq', clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H)), tb.lm || LM01, 0.22);
+      : drive(tb, 'sq', clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H)), tb.lm || LM01, 0.22, function (v) { return tb.wrapTop + v * Math.max(1, tb.wrapH - H); });
     if (typeof forcedQ !== 'number' && Math.abs(q - tb.lastQ) < 0.0004) return;
     tb.lastQ = q;
     var N = tb.chips.length;
@@ -1402,7 +1442,7 @@
     if (!bd.built) return;
     var q = typeof forcedQ === 'number'
       ? clamp01(forcedQ)
-      : drive(bd, 'sq', clamp01((window.scrollY - bd.wrapTop) / Math.max(1, bd.wrapH - H)), bd.lm || LM01, 0.28);
+      : drive(bd, 'sq', clamp01((window.scrollY - bd.wrapTop) / Math.max(1, bd.wrapH - H)), bd.lm || LM01, 0.28, function (v) { return bd.wrapTop + v * Math.max(1, bd.wrapH - H); });
     if (typeof forcedQ !== 'number' && Math.abs(q - bd.lastQ) < 0.0004) return;
     bd.lastQ = q;
     var i, c, f;
@@ -1486,7 +1526,7 @@
   function updateFlourishes(fOh, fCt) {
     var sy = window.scrollY;
     if (oh.built) {
-      var r = typeof fOh === 'number' ? clamp01(fOh) : drive(oh, 'sr', clamp01((sy + H * 0.88 - oh.top) / (H * 0.8)), LM01, 0.55);
+      var r = typeof fOh === 'number' ? clamp01(fOh) : drive(oh, 'sr', clamp01((sy + H * 0.88 - oh.top) / (H * 0.8)), LM01, 0.55, function (v) { return oh.top - H * 0.88 + v * H * 0.8; });
       if (typeof fOh === 'number' || Math.abs(r - oh.lastR) > 0.0005) {
         oh.lastR = r;
         // the photos land on the table and spread out
@@ -1501,7 +1541,7 @@
       }
     }
     if (ct.built) {
-      var r2 = typeof fCt === 'number' ? clamp01(fCt) : drive(ct, 'sr', clamp01((sy + H * 0.92 - ct.top) / (H * 0.85)), LM01, 0.5);
+      var r2 = typeof fCt === 'number' ? clamp01(fCt) : drive(ct, 'sr', clamp01((sy + H * 0.92 - ct.top) / (H * 0.85)), LM01, 0.5, function (v) { return ct.top - H * 0.92 + v * H * 0.85; });
       if (typeof fCt === 'number' || Math.abs(r2 - ct.lastR) > 0.0005) {
         ct.lastR = r2;
         // the paper plane arcs in over the headline and lands; its trail draws behind it
@@ -1543,7 +1583,9 @@
   var modeChip = document.getElementById('mode-toggle');
   function setScrollMode(m) {
     scrollMode = m;
+    playLock.active = false; playLock.owner = null;
     frame.sp = null; tb.sq = null; bd.sq = null; oh.sr = null; ct.sr = null;
+    frame._zt = tb._zt = bd._zt = oh._zt = ct._zt = undefined;
     if (modeChip) modeChip.textContent = 'scroll: ' + m + ' — tap to switch';
   }
   if (modeChip && modeChip.classList) {
