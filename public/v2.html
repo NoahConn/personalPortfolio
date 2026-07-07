@@ -103,7 +103,7 @@
     border-bottom: 3px solid var(--ink);
     transform: skewX(24deg) rotate(45deg);
   }
-  #cue {
+  #cue, #cue2 {
     margin-top: 1.4rem;
     display: inline-grid;
     place-items: center;
@@ -121,7 +121,8 @@
     pointer-events: auto;   /* the sticker layer is pointer-events: none */
     cursor: pointer;
   }
-  #cue:hover, #cue:focus-visible { background: var(--orange); }
+  #cue:hover, #cue:focus-visible, #cue2:hover, #cue2:focus-visible { background: var(--orange); }
+  #cue2 { margin-top: 1.6rem; }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
 
   /* ---------- chrome ---------- */
@@ -681,6 +682,7 @@
       <div class="badge" style="--bg: var(--orange);--tilt: -1.6deg; left: 29%; top: 58%;"><span class="yr">2023</span><span class="t">RotoEdgePro — AI Product</span></div>
       <div class="badge" style="--bg: var(--rust);  --fg: var(--cream); --tilt: 2.2deg; left: 50%; top: 11%;"><span class="yr">Next</span><span class="t">Your team?</span></div>
     </div>
+    <div><button id="cue2" type="button" aria-label="Continue to the toolbox" style="opacity: 0; pointer-events: none;">↓</button></div>
   </div>
 </div>
 
@@ -1365,26 +1367,32 @@
     if (u >= 1) { tour.active = false; return; }
     tour.raf = requestAnimationFrame(tourStep);
   }
+  function startTour(target, dur) {
+    if (reduced) { window.scrollTo(0, target); return; }
+    glideCancel();
+    snapCancel();
+    tourCancel();
+    tour.active = true;
+    tour.from = window.scrollY;
+    tour.to = target;
+    tour.dur = dur;
+    tour.t0 = performance.now();
+    tour.raf = requestAnimationFrame(tourStep);
+  }
   var cueBtn = document.getElementById('cue');
+  var cue2Btn = document.getElementById('cue2');
   if (cueBtn && cueBtn.addEventListener) {
     cueBtn.addEventListener('click', function () {
-      var target = H * 5;                    // smear done, trail drawn
-      if (reduced) { window.scrollTo(0, target); return; }
-      glideCancel();
-      snapCancel();
-      tourCancel();
-      tour.active = true;
-      tour.from = window.scrollY;
-      tour.to = target;
-      tour.dur = 6500;
-      tour.t0 = performance.now();
-      tour.raf = requestAnimationFrame(tourStep);
+      startTour(H * 5, 6500);                // smear done, trail drawn
+    });
+    if (cue2Btn) cue2Btn.addEventListener('click', function () {
+      startTour(tb.wrapTop !== undefined ? tb.wrapTop : H * 6, 1800);   // on to the toolbox
     });
     window.addEventListener('wheel', tourCancel, { passive: true });
     window.addEventListener('touchstart', tourCancel, { passive: true });
     window.addEventListener('keydown', tourCancel, true);
     window.addEventListener('mousedown', function (e) {
-      if (e.target !== cueBtn) tourCancel();
+      if (e.target !== cueBtn && e.target !== cue2Btn) tourCancel();
     }, true);
   }
   window.__tourStep = tourStep;
@@ -1462,6 +1470,11 @@
     }
     var burstP = easeOutBack(smooth(0.78, 0.86, p));
     burst.style.transform = 'translate(-50%, -50%) scale(' + Math.max(0, burstP).toFixed(3) + ') rotate(' + (p * 60).toFixed(1) + 'deg)';
+    if (cue2Btn) {
+      var c2 = smooth(0.88, 0.97, p);
+      cue2Btn.style.opacity = c2.toFixed(3);
+      cue2Btn.style.pointerEvents = c2 > 0.6 ? 'auto' : 'none';
+    }
   }
 
   // debug hook: render an arbitrary scroll progress synchronously (used for headless QA)
