@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Noah Connolly — AI Product Engineer and Full-Stack Developer. Agentic systems, real-time platforms, and the stack that ships them.">
+<meta name="theme-color" content="#F6EDDC">
+<link rel="icon" href="/NCFav.png">
+<title>Noah Connolly — AI Product Engineer</title>
+<style>
+  :root {
+    --cream:  #F6EDDC;
+    --paper:  #FBF6EA;
+    --sand:   #F2E3C0;
+    --ink:    #1D2D50;
+    --orange: #E8703A;
+    --rust:   #D9412B;
+    --amber:  #F2A65A;
+    --teal:   #2E8F96;
+    --sage:   #8FAF9F;
+    --display: "Avenir Next", "Futura", "Helvetica Neue", "Arial Black", sans-serif;
+    --body:    "Avenir Next", "Avenir", "Helvetica Neue", "Segoe UI", sans-serif;
+    --mono:    ui-monospace, "SF Mono", "Menlo", monospace;
+    color-scheme: light;
+  }
+  html { background: var(--cream); }
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--body);
+    overflow-x: hidden;
+  }
+
+  /* ---------- layers ---------- */
+  #reveal { position: fixed; inset: 0; z-index: 1; background: var(--cream); overflow: hidden; }
+  #waves  { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; display: block; }
+  #waves g { transform-box: fill-box; will-change: transform; }
+  #sticker-wrap { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none; padding: 1.2rem; }
+  .chrome { z-index: 5; }
+  #panel  { position: relative; z-index: 6; }
+
+  /* ---------- hero sticker ---------- */
+  #sticker {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 9px 9px 0 var(--ink);
+    padding: 1.6rem 1.7rem 1.5rem;
+    text-align: center;
+    max-width: min(30rem, 92vw);
+    transform: rotate(-1.2deg);
+    will-change: transform, opacity;
+  }
+  #sticker .role {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.7rem;
+    border-radius: 4px;
+    transform: rotate(1.4deg);
+    margin-bottom: 0.9rem;
+  }
+  #sticker h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2.2rem, 9vw, 3.9rem);
+    line-height: 0.98;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    color: var(--ink);
+    text-shadow: 4px 4px 0 var(--orange);
+    text-wrap: balance;
+  }
+  #bubble {
+    position: relative;
+    display: inline-block;
+    background: var(--teal);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    padding: 0.65rem 1rem;
+    font-size: clamp(0.92rem, 3.4vw, 1.05rem);
+    font-weight: 600;
+    color: var(--cream);
+    transform: rotate(0.8deg);
+    max-width: 22em;
+    line-height: 1.4;
+  }
+  #bubble b { background: var(--cream); color: var(--ink); padding: 0 0.3em; border-radius: 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  #bubble::after {
+    content: "";
+    position: absolute;
+    left: 18%;
+    bottom: -13px;
+    width: 16px; height: 16px;
+    background: var(--teal);
+    border-right: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    transform: skewX(24deg) rotate(45deg);
+  }
+  #cue {
+    margin-top: 1.4rem;
+    display: inline-grid;
+    place-items: center;
+    width: 40px; height: 40px;
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 4px 4px 0 var(--ink);
+    font-weight: 800;
+    font-size: 1.1rem;
+    animation: bob 1.4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+
+  /* ---------- chrome ---------- */
+  .eyebrow, #fps {
+    position: fixed;
+    top: max(0.8rem, env(safe-area-inset-top));
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    box-shadow: 3px 3px 0 var(--ink);
+    padding: 0.32rem 0.55rem;
+    color: var(--ink);
+  }
+  .eyebrow { left: 0.9rem; }
+  #fps { right: 0.9rem; font-variant-numeric: tabular-nums; }
+  #fps.warn { background: var(--amber); }
+  #fps.bad  { background: var(--rust); color: var(--cream); }
+
+  /* ---------- reveal scene ---------- */
+  #reveal-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4.5rem 1.2rem 3.5rem;
+    will-change: transform;
+  }
+  #scene-chip {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    box-shadow: 3px 3px 0 var(--ink);
+    padding: 0.35rem 0.6rem;
+    transform: rotate(-1.5deg);
+    margin-bottom: 0.9rem;
+  }
+  #reveal h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.7rem, 7vw, 3rem);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0 0 1.6rem;
+    text-shadow: 3px 3px 0 var(--amber);
+    text-align: center;
+  }
+  #road {
+    position: relative;
+    width: min(24rem, 88vw);
+    flex: 0 1 auto;
+  }
+  #road svg { display: block; width: 100%; height: auto; }
+  #road polyline {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 26 20;
+    animation: march 1.6s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #road polyline, #cue { animation: none !important; }
+  }
+  @keyframes march { to { stroke-dashoffset: -46; } }
+  .badge {
+    position: absolute;
+    transform: translate(-50%, -50%) rotate(var(--tilt)) scale(0);
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    box-shadow: 5px 5px 0 var(--ink);
+    padding: 0.5rem 0.7rem;
+    background: var(--bg);
+    color: var(--fg, var(--ink));
+    text-align: left;
+    line-height: 1.15;
+    will-change: transform;
+  }
+  .badge .yr {
+    font-family: var(--mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+    opacity: 0.75;
+    display: block;
+    text-transform: uppercase;
+  }
+  .badge .t {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  #burst {
+    position: absolute;
+    left: 50%;
+    top: 11%;
+    z-index: -1;
+    width: 130px; height: 130px;
+    background: repeating-conic-gradient(var(--amber) 0 11deg, transparent 11deg 24deg);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    will-change: transform;
+  }
+
+  /* ---------- page flow ---------- */
+  #spacer { height: 300vh; }
+  main { position: relative; z-index: 6; }
+
+  .sec { position: relative; padding: 4.6rem 1.4rem 4.8rem; }
+  .sec-inner { max-width: 46rem; margin: 0 auto; }
+  .sec.ink   { background: var(--ink); color: var(--cream); }
+  .sec.cream { background: var(--cream); color: var(--ink); }
+  .sec.sand  { background: var(--sand); color: var(--ink); }
+  .divider {
+    position: absolute;
+    top: -1px; left: 0;
+    width: 100%; height: 42px;
+    display: block;
+  }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    padding: 0.35rem 0.6rem;
+    transform: rotate(-1.5deg);
+    margin-bottom: 1rem;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .sec.ink .chip { box-shadow: 3px 3px 0 var(--rust); }
+  .sec h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.7rem, 6vw, 2.6rem);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0 0 0.7rem;
+    text-shadow: 3px 3px 0 var(--amber);
+    text-wrap: balance;
+  }
+  .sec.ink h2 { text-shadow: 3px 3px 0 var(--rust); }
+  .lede { max-width: 38rem; opacity: 0.85; margin: 0 0 2.2rem; line-height: 1.6; }
+
+  /* toolbox */
+  .cluster-grid { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fit, minmax(265px, 1fr)); }
+  .cluster {
+    background: var(--paper);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: 6px 6px 0 var(--acc, var(--rust));
+    padding: 1.15rem 1.2rem 1.25rem;
+  }
+  .cluster h3 {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.25rem;
+  }
+  .cluster .proof { font-size: 0.85rem; color: rgba(29, 45, 80, 0.72); margin: 0 0 0.85rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    padding: 0.22rem 0.45rem;
+    background: var(--cream);
+    white-space: nowrap;
+  }
+  .cluster .tag:nth-child(4n+1) { background: var(--amber); }
+  .cluster .tag:nth-child(4n+3) { background: var(--teal); color: var(--cream); }
+
+  /* projects */
+  .proj {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 8px 8px 0 var(--ink);
+    padding: 1.5rem 1.6rem 1.4rem;
+    margin: 0 0 1.9rem;
+    --tilt: -0.6deg;
+    transform: rotate(var(--tilt));
+  }
+  .proj:nth-child(even) { --tilt: 0.6deg; }
+  .proj .pchip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--acc, var(--rust));
+    color: var(--pfg, var(--cream));
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    padding: 0.3rem 0.55rem;
+    margin-bottom: 0.75rem;
+    transform: rotate(1deg);
+  }
+  .proj h3 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.25rem, 4.5vw, 1.6rem);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0 0 0.45rem;
+    text-wrap: balance;
+  }
+  .proj .problem { font-weight: 600; margin: 0 0 0.9rem; line-height: 1.45; }
+  .proj ul { margin: 0 0 0.9rem; padding-left: 1.15rem; }
+  .proj li { margin-bottom: 0.4rem; font-size: 0.95rem; line-height: 1.5; color: rgba(29, 45, 80, 0.85); }
+  .proj .result { font-weight: 700; font-size: 0.95rem; margin: 0 0 0.95rem; }
+  .proj .result::before { content: "→ "; color: var(--rust); }
+  .stack {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(29, 45, 80, 0.55);
+  }
+
+  /* off-hours */
+  .oh-grid { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fit, minmax(265px, 1fr)); }
+  .oh-card {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 1.15rem 1.2rem 1.25rem;
+  }
+  .oh-card h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.05rem; margin: 0 0 0.5rem; }
+  .oh-card p { margin: 0 0 0.9rem; font-size: 0.92rem; line-height: 1.55; color: rgba(29, 45, 80, 0.85); }
+  .postcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+  .postcard {
+    aspect-ratio: 3 / 4;
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .oh-note { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: rgba(29, 45, 80, 0.5); margin-top: 0.7rem; text-transform: uppercase; }
+  .music-bars { display: flex; gap: 5px; align-items: flex-end; height: 58px; margin-top: 0.4rem; }
+  .music-bars span {
+    width: 9px;
+    border: 2px solid var(--ink);
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    background: var(--rust);
+    animation: hum 1.6s ease-in-out infinite alternate;
+    transform-origin: bottom;
+  }
+  .music-bars span:nth-child(3n)   { background: var(--teal); }
+  .music-bars span:nth-child(3n+1) { background: var(--amber); }
+  @keyframes hum { from { transform: scaleY(0.55); } to { transform: scaleY(1); } }
+
+  /* contact */
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 1.6rem; }
+  .btn {
+    display: inline-block;
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.15rem;
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    background: var(--amber);
+    color: var(--ink);
+    text-decoration: none;
+    box-shadow: 5px 5px 0 var(--rust);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn.alt { background: var(--teal); color: var(--cream); }
+  .btn.ghost { background: var(--cream); }
+  .btn:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--rust); }
+  .btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--rust); }
+  .btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+  footer {
+    padding: 2.4rem 0 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(246, 237, 220, 0.45);
+  }
+
+  /* ---------- off-hours & contact flourishes ---------- */
+  #offhours .postcard, #offhours .music-bars { will-change: transform; }
+  #contact .sec-inner { position: relative; }
+  #ct-art {
+    position: absolute;
+    top: -8px; right: -4px;
+    width: min(400px, 82%);
+    height: 150px;
+    pointer-events: none;
+    display: none;
+  }
+  #contact.scrolly #ct-art { display: block; }
+  #ct-art > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  #ct-trail {
+    fill: none;
+    stroke: rgba(246, 237, 220, 0.45);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+  #ct-plane {
+    position: absolute;
+    left: 0; top: 0;
+    width: 36px; height: 36px;
+    margin: -18px 0 0 -18px;
+    filter: drop-shadow(3px 3px 0 rgba(9, 15, 28, 0.5));
+    will-change: transform;
+  }
+
+  /* ---------- builds scrollytelling: the wall of work ---------- */
+  #builds .bd-dots { display: none; }
+  #builds.scrolly { padding: 0; }
+  #builds.scrolly .pin-wrap { height: 560vh; }
+  #builds.scrolly .pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #builds .pin-wrap { position: relative; }
+  #builds.scrolly .bd-head { padding: 3.2rem 1.4rem 0.4rem; }
+  #builds.scrolly .bd-lede { display: none; }
+  #builds.scrolly .bd-dots { display: flex; gap: 0.5rem; margin: 0.2rem 0 0.7rem; }
+  .bd-dot {
+    width: 13px; height: 13px;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    display: inline-block;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  #builds.scrolly .bd-list { position: relative; flex: 1; max-width: none; margin: 0; }
+  #builds.scrolly .proj {
+    position: absolute;
+    left: 50%; top: 0;
+    width: min(92vw, 620px);
+    margin: 0;
+    opacity: 0;
+    transform-origin: 50% 0;
+    will-change: transform, opacity;
+  }
+
+  /* ---------- toolbox scrollytelling: the stack builds itself ---------- */
+  #toolbox .pin-wrap { position: relative; }
+  #toolbox .tb-zone { display: none; }
+  #toolbox.scrolly { padding: 0; }
+  #toolbox.scrolly .pin-wrap { height: 330vh; }
+  #toolbox.scrolly .pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #toolbox.scrolly .tb-head { padding: 4.2rem 1.4rem 0; }
+  #toolbox.scrolly .tb-zone { display: block; position: relative; flex: 1; }
+  #toolbox.scrolly .cluster-grid { display: none; }
+  #tb-narr { min-height: 3.2em; }
+  #tb-narr.nswap { animation: nswap 0.35s ease; }
+  @keyframes nswap { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  #tbox {
+    position: absolute;
+    left: 50%; top: 6px;
+    width: 168px; height: 92px;
+    transform: translateX(-50%);
+  }
+  .tb-lid {
+    position: absolute; top: 26px; left: 0; right: 0;
+    height: 16px;
+    background: var(--amber);
+    border: 3px solid var(--ink);
+    border-radius: 6px;
+    transform-origin: 4% 90%;
+  }
+  .tb-handle {
+    position: absolute; top: -27px; left: 50%;
+    width: 62px; height: 30px;
+    transform: translateX(-50%);
+    border: 4px solid var(--amber);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+  }
+  .tb-body {
+    position: absolute; top: 40px; left: 4px; right: 4px; bottom: 0;
+    background: var(--rust);
+    border: 3px solid var(--ink);
+    border-radius: 0 0 10px 10px;
+    box-shadow: 5px 5px 0 rgba(246, 237, 220, 0.16);
+    display: grid;
+    place-items: center;
+  }
+  .tb-label {
+    font-family: var(--mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.18em;
+    color: var(--cream);
+    text-transform: uppercase;
+  }
+  .tb-base {
+    position: absolute; left: 50%;
+    transform: translateX(-50%);
+    border-top: 3px dashed rgba(246, 237, 220, 0.25);
+  }
+  #tb-burst {
+    position: absolute;
+    width: 120px; height: 120px;
+    background: repeating-conic-gradient(var(--amber) 0 11deg, transparent 11deg 24deg);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  .fly-tag {
+    position: absolute; left: 0; top: 0;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    padding: 0.2rem 0.42rem;
+    white-space: nowrap;
+    opacity: 0;
+    box-shadow: 2px 2px 0 rgba(9, 15, 28, 0.5);
+    will-change: transform, opacity;
+  }
+  @media (max-width: 480px) {
+    .fly-tag { font-size: 0.52rem; padding: 0.16rem 0.34rem; }
+  }
+
+  /* scroll reveals (JS-gated so the page reads fine without JS) */
+  .js .rv {
+    opacity: 0;
+    transform: translateY(26px) rotate(var(--tilt, 0deg));
+    transition: opacity 0.55s cubic-bezier(0.2, 0.7, 0.3, 1), transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .js .rv.in { opacity: 1; transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  @media (prefers-reduced-motion: reduce) {
+    .js .rv { opacity: 1; transform: none; transition: none; }
+    .music-bars span { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Scene 2, sitting UNDER the waves -->
+<div id="reveal">
+  <div id="reveal-inner">
+    <div id="scene-chip">Scene 02 · Story</div>
+    <h2>The path so far</h2>
+    <div id="road">
+      <svg viewBox="0 0 400 520" aria-hidden="true">
+        <polyline points="60,470 330,410 70,300 330,190 200,60"></polyline>
+      </svg>
+      <div id="burst"></div>
+      <div class="badge" style="--bg: var(--teal);  --fg: var(--cream); --tilt: -2.4deg; left: 27%; top: 90%;"><span class="yr">2021</span><span class="t">Ball State — CS + Oboe</span></div>
+      <div class="badge" style="--bg: var(--amber); --tilt: 1.8deg;  left: 70%; top: 79%;"><span class="yr">2021</span><span class="t">Cascade Tech — FHIR / EHR</span></div>
+      <div class="badge" style="--bg: var(--orange);--tilt: -1.6deg; left: 29%; top: 58%;"><span class="yr">2023</span><span class="t">RotoEdgePro — AI Product</span></div>
+      <div class="badge" style="--bg: var(--rust);  --fg: var(--cream); --tilt: 2.2deg; left: 50%; top: 11%;"><span class="yr">Next</span><span class="t">Your team?</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- The living wave painting -->
+<svg id="waves" aria-hidden="true"></svg>
+
+<!-- Hero sticker -->
+<div id="sticker-wrap">
+  <div id="sticker">
+    <div class="role">AI Product Engineer · Full-Stack Developer</div>
+    <h1>Noah Connolly</h1>
+    <div id="bubble">Building is easy. <b>Building the right thing isn't.</b></div>
+    <div><span id="cue">↓</span></div>
+  </div>
+</div>
+
+
+<div id="spacer"></div>
+
+<main>
+  <!-- Scene 03 · Toolbox -->
+  <section class="sec ink" id="toolbox">
+    <svg class="divider" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L100 0 L100 3 C 82 8.5, 64 1.5, 48 5 C 30 9, 14 3, 0 7 Z" fill="#F6EDDC"/></svg>
+    <div class="pin-wrap">
+    <div class="pin">
+    <div class="sec-inner tb-head">
+      <span class="chip" style="background: var(--rust); color: var(--cream);">Scene 03 · Toolbox</span>
+      <h2>What I build with</h2>
+      <p class="lede" id="tb-narr">Not a badge wall — each of these is carrying production traffic somewhere right now.</p>
+    </div>
+    <div class="tb-zone" aria-hidden="true">
+      <div id="tbox">
+        <div class="tb-lid"><span class="tb-handle"></span></div>
+        <div class="tb-body"><span class="tb-label">NC · Field Kit</span></div>
+      </div>
+      <div class="tb-base"></div>
+      <div id="tb-burst"></div>
+    </div>
+    <div class="sec-inner">
+      <div class="cluster-grid">
+        <div class="cluster rv" style="--acc: var(--rust);">
+          <h3>AI / LLM</h3>
+          <p class="proof">Agentic systems that 30+ managers open every morning.</p>
+          <div class="chips"><span class="tag">Claude API</span><span class="tag">OpenAI API</span><span class="tag">Agentic pipelines</span><span class="tag">Tool use</span><span class="tag">RAG</span><span class="tag">Prompt engineering</span><span class="tag">Structured output</span><span class="tag">Embeddings</span></div>
+        </div>
+        <div class="cluster rv" style="--acc: var(--teal);">
+          <h3>Languages &amp; Frameworks</h3>
+          <p class="proof">Six years full-stack — both sides of the wire.</p>
+          <div class="chips"><span class="tag">Python</span><span class="tag">JavaScript / TS</span><span class="tag">C#</span><span class="tag">SQL</span><span class="tag">Django + Channels</span><span class="tag">React</span><span class="tag">Vue / Nuxt</span><span class="tag">Node / Express</span><span class="tag">.NET</span><span class="tag">Tailwind</span></div>
+        </div>
+        <div class="cluster rv" style="--acc: var(--amber);">
+          <h3>Cloud &amp; Infra</h3>
+          <p class="proof">CI/CD promotion gates that cut release time 70%.</p>
+          <div class="chips"><span class="tag">AWS · EC2 / RDS / S3 / VPC</span><span class="tag">GCP</span><span class="tag">Terraform</span><span class="tag">Docker</span><span class="tag">Jenkins</span><span class="tag">GitHub Actions</span><span class="tag">Redis</span><span class="tag">PostgreSQL</span></div>
+        </div>
+        <div class="cluster rv" style="--acc: var(--orange);">
+          <h3>Integrations &amp; Standards</h3>
+          <p class="proof">Bidirectional ERP syncs that survive outages and heal themselves.</p>
+          <div class="chips"><span class="tag">WebSocket / ASGI</span><span class="tag">QuickBooks</span><span class="tag">Sage</span><span class="tag">NetSuite</span><span class="tag">Acumatica</span><span class="tag">HL7 FHIR</span><span class="tag">Auth0 / OAuth2</span><span class="tag">Twilio</span></div>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- Scene 04 · Selected builds -->
+  <section class="sec cream" id="builds">
+    <svg class="divider" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L100 0 L100 4 C 84 9, 66 2, 50 6 C 32 10, 16 4, 0 8 Z" fill="#1D2D50"/></svg>
+    <div class="pin-wrap">
+    <div class="pin">
+    <div class="sec-inner bd-head">
+      <span class="chip" style="background: var(--teal); color: var(--cream);">Scene 04 · Selected Builds</span>
+      <h2>Problems first, code second</h2>
+      <p class="lede bd-lede">Four builds that follow the same arc: a fuzzy, expensive problem — then the right thing, shipped.</p>
+      <div class="bd-dots" id="bd-dots" aria-hidden="true"></div>
+    </div>
+    <div class="sec-inner bd-list">
+
+      <article class="proj rv" style="--acc: var(--rust);">
+        <span class="pchip">AI · Automation</span>
+        <h3>Autonomous Error Remediation</h3>
+        <p class="problem">Every production error waited on a human just to become engineering work.</p>
+        <ul>
+          <li>Fingerprints errors in production and assembles the surrounding context automatically</li>
+          <li>Generates fix candidates through the Claude API</li>
+          <li>Opens GitHub PRs — the first human in the loop is the reviewer</li>
+        </ul>
+        <p class="result">Changed what the team considers automatable.</p>
+        <p class="stack">Python · Django · Claude API · GitHub · AWS</p>
+      </article>
+
+      <article class="proj rv" style="--acc: var(--teal);">
+        <span class="pchip">AI · Product</span>
+        <h3>The AI Daily Briefing</h3>
+        <p class="problem">Operators, supervisors, and CEOs open the same dashboard wanting completely different mornings.</p>
+        <ul>
+          <li>Sat with every role across our customers before writing a line of briefing logic</li>
+          <li>Two-pass LLM pipeline builds role-shaped scorecards — shifts, trends, remediation recommendations</li>
+          <li>Delivered on each user's own schedule, tied to the existing permission model</li>
+        </ul>
+        <p class="result">The daily anchor for 30+ managers and schedulers.</p>
+        <p class="stack">Claude API · Django · Redis · WebSockets</p>
+      </article>
+
+      <article class="proj rv" style="--acc: #2470A0; --pfg: var(--cream);">
+        <span class="pchip">Scale · Infra</span>
+        <h3>20,000 Parts a Day</h3>
+        <p class="problem">Our biggest plant was 10× anything we'd run — and AWS said "healthy" while operators phoned in outages.</p>
+        <ul>
+          <li>Built the observability that didn't exist: thread state, WebSocket churn, honest health checks</li>
+          <li>Unwound the failure chain — instance sizing, thread pools, reconnect storms, signal floods, memory fragmentation</li>
+          <li>Auto-remediation now detects blocked threads and memory pressure and recovers in seconds</li>
+        </ul>
+        <p class="result">Green means healthy now.</p>
+        <p class="stack">AWS EC2 / RDS · Django Channels · Redis · ASGI</p>
+      </article>
+
+      <article class="proj rv" style="--acc: var(--sage); --pfg: var(--ink);">
+        <span class="pchip">Healthcare · Data</span>
+        <h3>Health Record Cloud</h3>
+        <p class="problem">A multi-practitioner clinic needed records that speak FHIR — across two clouds.</p>
+        <ul>
+          <li>Architected FHIR data capture and transfer spanning AWS and GCP</li>
+          <li>Audit logging, document version control, async database management over RESTful APIs</li>
+          <li>Auth0, Twilio, and Typesense for a secure patient-and-clinician experience</li>
+        </ul>
+        <p class="result">Led and mentored the team that shipped it.</p>
+        <p class="stack">HL7 FHIR · AWS · GCP · Node · NoSQL · Auth0</p>
+      </article>
+    </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- Scene 05 · Contact -->
+  <section class="sec ink" id="contact">
+    <svg class="divider" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L100 0 L100 4 C 83 9, 65 2.5, 49 6 C 31 9.8, 15 4, 0 8 Z" fill="#F6EDDC"/></svg>
+    <div class="sec-inner">
+      <div id="ct-art" aria-hidden="true">
+        <svg viewBox="0 0 100 36" preserveAspectRatio="none"><path id="ct-trail" d="M0 30 Q 55 -14 96 22" pathLength="100" vector-effect="non-scaling-stroke"/></svg>
+        <div id="ct-plane"><svg viewBox="0 0 24 24"><path d="M2 12 L22 3 L14 21 L11 13 Z" fill="#F6EDDC" stroke="#1D2D50" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+      </div>
+      <span class="chip" style="background: var(--orange);">Scene 05 · Contact</span>
+      <h2>Have the right thing to build?</h2>
+      <p class="lede">I'm looking for a team where AI is the product, not the garnish — and where I can own the problem from stakeholder conversation to production. If that sounds like your team, let's talk.</p>
+      <div class="cta-row rv">
+        <a class="btn" href="mailto:noah.d.connolly@gmail.com">Email me</a>
+        <a class="btn alt" href="https://www.linkedin.com/in/noah-connolly-a01047170/" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn ghost" href="https://github.com/Cascade-Tech-Consulting" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <footer>© 2026 Noah Connolly · Vancouver, WA · Zero frameworks were harmed in this animation</footer>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var svg = document.getElementById('waves');
+  var sticker = document.getElementById('sticker');
+  var revealInner = document.getElementById('reveal-inner');
+  var burst = document.getElementById('burst');
+  var badges = Array.prototype.slice.call(document.querySelectorAll('.badge'));
+  var fpsEl = document.getElementById('fps');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // ordered like the retro-waves reference: warm sky → navy deep → teals → sandy shore
+  var WAVE_COLS = ['#F2A65A', '#E8703A', '#D9412B', '#1D2D50', '#2470A0', '#2E8F96', '#8FAF9F', '#F2E3C0', '#EFA45B', '#D9412B'];
+
+  var seed = 4271;
+  function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+  function clamp01(t) { return t < 0 ? 0 : t > 1 ? 1 : t; }
+  function smooth(a, b, t) { return clamp01((t - a) / (b - a)); }
+  function easeInCubic(t) { return t * t * t; }
+  function easeOutCubic(t) { var u = 1 - t; return 1 - u * u * u; }
+  function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeOutBack(t) { var c = 1.70158; var u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u; }
+
+  // ---------- build the painting ----------
+  // n wavy boundary curves cut the canvas into n+1 STRIPS (sky, waves, shore).
+  // Each strip is closed between two curves, so a strip that washes away
+  // immediately reveals whatever is behind it — any exit order works.
+  var W = 0, H = 0, GAP = 0, curves = [], strips = [];
+  var OV = 1.5; // strip overlap, hides antialiasing seams at rest
+
+  function bandCount() { return Math.max(6, Math.round(Math.max(W, H) / 150)); }
+
+  // (re)generate curve parameters for the current W/H. Seed is reset so the same painting
+  // re-derives at any size — which makes live resize a pure recompute, no DOM churn
+  function regenCurves(n) {
+    seed = 4271;
+    GAP = H * 1.02 / (n + 1);                 // vertical distance between curves
+    curves = [];
+    for (var k = 0; k < n; k++) {
+      // spread curves 0.11H…0.95H so the top (sky) and bottom (shore) strips both keep
+      // real thickness — a near-zero strip lets its wavy edge cross the flat edge and
+      // the path inverts into a bowtie mid-wash
+      curves.push({
+        yb: H * (0.02 + 1.02 * (k + 1) / (n + 1)),
+        amp: GAP * (0.12 + rnd() * 0.16),     // scaled to the gap so neighbors never cross
+        dir: (k % 2 === 0 ? 1 : -1),
+        j0: (rnd() - 0.5) * GAP * 0.25,
+        j1: (rnd() - 0.5) * GAP * 0.25,
+        phase: rnd() * Math.PI * 2,
+        speed: 0.25 + rnd() * 0.3,            // rad/s — the gentle drift
+        drift: GAP * (0.05 + rnd() * 0.04)
+      });
+    }
+  }
+
+  function buildWaves() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    curves = []; strips = [];
+    seed = 4271;
+    W = window.innerWidth; H = window.innerHeight;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    // cover-fit: while the window is being dragged the old painting just scales like a
+    // background image (compositor-only, smooth); geometry re-derives after the drag settles
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+
+    var n = bandCount();
+    regenCurves(n);
+
+    for (var j = 0; j <= n; j++) {
+      var g = document.createElementNS(NS, 'g');
+      var path = document.createElementNS(NS, 'path');
+      path.setAttribute('fill', WAVE_COLS[j % WAVE_COLS.length]);
+      g.appendChild(path);
+      svg.appendChild(g);
+      strips.push({
+        g: g, path: path,
+        top: j - 1, bot: j < n ? j : -1,      // curve indices; -1 = flat screen edge
+        idx: j, count: n + 1,
+        // the wind: every strip rides the same gust, each in its own way
+        rank: (j / (n + 1)) * 0.55 + rnd() * 0.12,  // top peels first, loosely
+        speed: 1 + rnd() * 0.55,
+        waveAmp: 0.7 + rnd() * 0.6,
+        phase: rnd() * Math.PI * 2
+      });
+      setStrip(strips[j], 0, 1);
+    }
+  }
+
+  // evaluate curve k at a moment; df(frac) → [dx, dy] adds organic per-station displacement,
+  // so different parts of a band travel at different speeds — bending, not sliding
+  function curveAt(k, time, ampMul, df) {
+    var c = curves[k];
+    var slope = H * 0.14;
+    var w1 = Math.sin(time * c.speed + c.phase) * c.drift;
+    var w2 = Math.sin(time * c.speed * 0.8 + c.phase + 2.1) * c.drift;
+    var w3 = Math.sin(time * c.speed * 1.15 + c.phase + 4.4) * c.drift;
+    var amp = c.amp * ampMul;
+    var y0 = c.yb + slope * 0.5 + c.j0 + w1;
+    var ym = c.yb + w2;
+    var y1 = c.yb - slope * 0.5 + c.j1 + w3;
+    var c2y = c.yb - c.dir * amp + w2;
+    var q = {
+      ax: 0, ay: y0,
+      c1x: W * 0.22, c1y: y0 + c.dir * amp,
+      c2x: W * 0.36, c2y: c2y,
+      bx: W * 0.52, by: ym,
+      c3x: W * 0.68, c3y: 2 * ym - c2y,       // S-command reflection, made explicit
+      c4x: W * 0.82, c4y: y1 + c.dir * amp,
+      cx: W, cy: y1
+    };
+    if (df) {
+      var d;
+      d = df(0);    q.ax  += d[0]; q.ay  += d[1];
+      d = df(0.22); q.c1x += d[0]; q.c1y += d[1];
+      d = df(0.36); q.c2x += d[0]; q.c2y += d[1];
+      d = df(0.52); q.bx  += d[0]; q.by  += d[1];
+      d = df(0.82); q.c4x += d[0]; q.c4y += d[1];
+      d = df(1);    q.cx  += d[0]; q.cy  += d[1];
+      // re-derive the mid reflection AFTER deformation — keeps the joint kink-free however far the band bends
+      q.c3x = 2 * q.bx - q.c2x;
+      q.c3y = 2 * q.by - q.c2y;
+    }
+    return q;
+  }
+
+  function fwd(q) { // left → right along the curve
+    return 'M' + q.ax.toFixed(1) + ' ' + q.ay.toFixed(1) +
+      ' C ' + q.c1x.toFixed(1) + ' ' + q.c1y.toFixed(1) + ', ' + q.c2x.toFixed(1) + ' ' + q.c2y.toFixed(1) + ', ' + q.bx.toFixed(1) + ' ' + q.by.toFixed(1) +
+      ' C ' + q.c3x.toFixed(1) + ' ' + q.c3y.toFixed(1) + ', ' + q.c4x.toFixed(1) + ' ' + q.c4y.toFixed(1) + ', ' + q.cx.toFixed(1) + ' ' + q.cy.toFixed(1);
+  }
+  function revBody(q, ov) { // right → left, shifted down by ov; assumes current point is the right cap end
+    return ' C ' + q.c4x.toFixed(1) + ' ' + (q.c4y + ov).toFixed(1) + ', ' + q.c3x.toFixed(1) + ' ' + (q.c3y + ov).toFixed(1) + ', ' + q.bx.toFixed(1) + ' ' + (q.by + ov).toFixed(1) +
+      ' C ' + q.c2x.toFixed(1) + ' ' + (q.c2y + ov).toFixed(1) + ', ' + q.c1x.toFixed(1) + ' ' + (q.c1y + ov).toFixed(1) + ', ' + q.ax.toFixed(1) + ' ' + (q.ay + ov).toFixed(1);
+  }
+  // soft end cap from (x1,y1) to (x2,y2). s in [-1,1]: 0 = straight edge (square, tiles the
+  // screen at rest); ±1 = full semicircular lobe sized to the band's thickness, so pieces
+  // in flight read as pills, never rectangles or wedges
+  function cap(x1, y1, x2, y2, s) {
+    var bow = s * Math.abs(y2 - y1) * 0.7; // 4/3 × radius ≈ semicircle from a single cubic
+    return ' C ' + (x1 + bow).toFixed(1) + ' ' + y1.toFixed(1) +
+           ', ' + (x2 + bow).toFixed(1) + ' ' + y2.toFixed(1) +
+           ', ' + x2.toFixed(1) + ' ' + y2.toFixed(1);
+  }
+
+  function setStrip(s, time, ampMul, dfTop, dfBot, capR) {
+    var d, tq, bq, d0, d1;
+    capR = capR || 0;
+    if (s.top < 0) {                          // sky: flat top edge above the screen
+      bq = curveAt(s.bot, time, ampMul, dfBot);
+      d0 = dfTop ? dfTop(0) : [0, 0]; d1 = dfTop ? dfTop(1) : [0, 0];
+      d = 'M' + d0[0].toFixed(1) + ' ' + (-60 + d0[1]).toFixed(1) +
+          ' L ' + (W + d1[0]).toFixed(1) + ' ' + (-60 + d1[1]).toFixed(1) +
+          cap(W + d1[0], -60 + d1[1], bq.cx, bq.cy + OV, capR) +
+          revBody(bq, OV) +
+          cap(bq.ax, bq.ay + OV, d0[0], -60 + d0[1], -capR) + ' Z';
+    } else if (s.bot < 0) {                   // shore: flat bottom edge below the screen
+      tq = curveAt(s.top, time, ampMul, dfTop);
+      d0 = dfBot ? dfBot(0) : [0, 0]; d1 = dfBot ? dfBot(1) : [0, 0];
+      d = fwd(tq) +
+          cap(tq.cx, tq.cy, W + d1[0], H + 60 + d1[1], capR) +
+          ' L ' + d0[0].toFixed(1) + ' ' + (H + 60 + d0[1]).toFixed(1) +
+          cap(d0[0], H + 60 + d0[1], tq.ax, tq.ay, -capR) + ' Z';
+    } else {
+      tq = curveAt(s.top, time, ampMul, dfTop);
+      bq = curveAt(s.bot, time, ampMul, dfBot);
+      d = fwd(tq) +
+          cap(tq.cx, tq.cy, bq.cx, bq.cy + OV, capR) +
+          revBody(bq, OV) +
+          cap(bq.ax, bq.ay + OV, tq.ax, tq.ay, -capR) + ' Z';
+    }
+    s.path.setAttribute('d', d);
+  }
+
+  // ---------- four organic washes (pure path deformation, no rigid transforms) ----------
+  // each deform(b, e) returns {top, bot}: per-station displacement fns, frac → [dx, dy]
+  var VARIANTS = {
+    ribbon: {   // S-bends away on a traveling wave, like a ribbon on the wind
+      deform: function (b, e) {
+        var t2 = e * e;
+        var travel = W * 1.55 * b.speed * t2;
+        var rise = H * 0.24 * b.speed * t2;
+        var wAmp = H * 0.045 * e * b.waveAmp;
+        var fn = function (frac) {
+          return [
+            travel * (0.72 + 0.28 * frac),
+            -rise * (0.75 + 0.5 * frac) + Math.sin(e * Math.PI * 2.4 + b.phase - frac * 3.4) * wAmp
+          ];
+        };
+        return { top: fn, bot: fn };
+      }
+    },
+    current: {  // streams along the painting's diagonal grain at full thickness
+      deform: function (b, e) {
+        var t2 = e * e;
+        var travel = W * 1.7 * b.speed * t2;
+        var meander = Math.sin(e * 2.8 + b.phase) * H * 0.025 * e;
+        var fn = function (frac) {
+          return [
+            travel * (0.68 + 0.32 * frac),
+            -travel * 0.22 * (0.6 + 0.4 * frac) + meander
+          ];
+        };
+        return { top: fn, bot: fn };
+      }
+    },
+    updraft: {  // billows upward like smoke, undulation intensifying as it lifts
+      ampMul: function (e) { return 1 + 1.4 * e; },
+      deform: function (b, e) {
+        var t2 = e * e;
+        var rise = H * 1.5 * b.speed * t2;
+        var sway = Math.sin(e * Math.PI * 1.7 + b.phase) * W * 0.045 * e;
+        var fn = function (frac) {
+          return [
+            W * 0.4 * t2 * (0.5 + 0.5 * frac) + sway,
+            -rise * (0.7 + 0.5 * Math.pow(frac, 1.3))
+          ];
+        };
+        return { top: fn, bot: fn };
+      }
+    },
+    unravel: {  // peels from the leading edge in a whip arc, tail lingering
+      deform: function (b, e) {
+        var fn = function (frac) {
+          var local = easeInOutCubic(clamp01(e * 1.55 - (1 - frac) * 0.55));
+          return [
+            W * 1.5 * b.speed * local,
+            -H * 0.55 * Math.pow(local, 1.5) + Math.sin(local * Math.PI) * H * 0.07 * b.waveAmp
+          ];
+        };
+        return { top: fn, bot: fn };
+      }
+    }
+  };
+  var washKey = 'current'; // Noah's pick; the others stay defined for quick comparison via __setWash
+
+  window.__setWash = function (k) { if (VARIANTS[k]) washKey = k; };
+
+  // ---------- scroll ----------
+  var scrollTarget = 0, p = 0;
+  function readScroll() {
+    // the intro choreography owns the 300vh spacer (200vh of scroll) — anchored to the
+    // viewport, not total page height, so adding sections never compresses the wash
+    scrollTarget = H > 0 ? clamp01(window.scrollY / (H * 2)) : 0;
+  }
+  window.addEventListener('scroll', readScroll, { passive: true });
+
+  // ---------- frame ----------
+  var startTime = null;
+
+  function frame(now) {
+    if (startTime === null) startTime = now;
+    var time = (now - startTime) / 1000;
+    p += (scrollTarget - p) * (reduced ? 1 : 0.11);
+    render(time);
+    updateToolboxScrolly();
+    updateBuildsScrolly();
+    updateFlourishes();
+    tickFPS(now);
+    if (!document.hidden) raf = requestAnimationFrame(frame);
+  }
+
+  function render(time) {
+    // hero sticker out
+    var sOut = smooth(0.03, 0.15, p);
+    sticker.style.opacity = (1 - sOut).toFixed(3);
+    sticker.style.transform = 'rotate(-1.2deg) scale(' + (1 - sOut * 0.1).toFixed(3) + ') translateY(' + (-sOut * 40).toFixed(1) + 'px)';
+    sticker.parentElement.style.visibility = sOut >= 0.999 ? 'hidden' : 'visible';
+
+    var m = smooth(0.13, 0.5, p);
+    var wash = VARIANTS[washKey];
+
+    for (var i = 0; i < strips.length; i++) {
+      var b = strips[i];
+
+      // the gust: loose top-first stagger
+      var e = easeInOutCubic(smooth(b.rank, b.rank + 0.45, m));
+
+      if (reduced) {
+        b.g.style.opacity = (1 - e).toFixed(3);
+        continue;
+      }
+      if (e >= 0.999) { b.g.style.visibility = 'hidden'; continue; }
+      b.g.style.visibility = 'visible';
+
+      var df = e > 0 ? wash.deform(b, e) : null;
+      var capS = clamp01(e * 2.5); // corners round into full lobes the moment a band starts to move
+      setStrip(b, time, wash.ampMul ? wash.ampMul(e) : 1, df && df.top, df && df.bot, capS);
+    }
+
+    // reveal parallax + badge pops
+    revealInner.style.transform = 'translateY(' + ((1 - smooth(0.13, 0.55, p)) * 40).toFixed(1) + 'px)';
+    for (var bd = 0; bd < badges.length; bd++) {
+      var bp = easeOutBack(smooth(0.42 + bd * 0.085, 0.5 + bd * 0.085, p));
+      badges[bd].style.transform = 'translate(-50%, -50%) rotate(var(--tilt)) scale(' + Math.max(0, bp).toFixed(3) + ')';
+    }
+    var burstP = easeOutBack(smooth(0.72, 0.8, p));
+    burst.style.transform = 'translate(-50%, -50%) scale(' + Math.max(0, burstP).toFixed(3) + ') rotate(' + (p * 60).toFixed(1) + 'deg)';
+  }
+
+  // debug hook: render an arbitrary scroll progress synchronously (used for headless QA)
+  window.__step = function (v) {
+    scrollTarget = v; p = v;
+    render(7);
+    return 'p=' + v;
+  };
+
+  // ---------- fps ----------
+  var lastT = 0, acc = 0, frames = 0;
+  function tickFPS(now) {
+    if (!fpsEl) return;
+    if (lastT) { acc += now - lastT; frames++; }
+    lastT = now;
+    if (acc >= 500) {
+      var fps = Math.round(1000 * frames / acc);
+      fpsEl.textContent = fps + ' fps';
+      fpsEl.className = 'chrome' + (fps >= 55 ? '' : fps >= 40 ? ' warn' : ' bad');
+      acc = 0; frames = 0;
+    }
+  }
+
+  // ---------- lifecycle ----------
+  var raf = null;
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { cancelAnimationFrame(raf); lastT = 0; }
+    else raf = requestAnimationFrame(frame);
+  });
+
+  // live resize: during the drag the SVG cover-scales (preserveAspectRatio="slice") with no JS
+  // work at all — smooth. Once the size settles, geometry re-derives crisp at the exact size.
+  var resizeT = null;
+  window.addEventListener('resize', function () {
+    readScroll();
+    clearTimeout(resizeT);
+    resizeT = setTimeout(function () {
+      W = window.innerWidth; H = window.innerHeight;
+      var n = bandCount();
+      if (n !== curves.length) {
+        buildWaves();
+      } else {
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+        regenCurves(n);
+        if (reduced) { // reduced-motion loop doesn't repaint strips; do it once here
+          for (var i = 0; i < strips.length; i++) setStrip(strips[i], 0, 1);
+        }
+      }
+      layoutToolboxScrolly();
+      layoutBuildsScrolly();
+      layoutFlourishes();
+      readScroll();
+    }, 180);
+  });
+
+  // ---------- toolbox scrollytelling: the stack builds itself ----------
+  var tb = { built: false, chips: [], layers: [], lastQ: -1, narrIdx: -1 };
+  var TB_NARR = [
+    'Six years of tools — packed into one box. Keep scrolling.',
+    '01 · The foundation — languages & frameworks. Both sides of the wire.',
+    '02 · It runs on cloud & infra — CI/CD gates that cut release time 70%.',
+    '03 · It talks to everything — ERP, FHIR, auth, telephony.',
+    '04 · And on top: AI — agentic systems 30+ managers use daily.',
+    'That’s the stack — every piece of it carrying production traffic.'
+  ];
+
+  function buildToolboxScrolly() {
+    var sec = document.getElementById('toolbox');
+    if (reduced || !sec || !sec.classList) return;
+    var pinWrap = sec.querySelector('.pin-wrap');
+    var zone = sec.querySelector('.tb-zone');
+    var clusters = sec.querySelectorAll('.cluster');
+    if (!pinWrap || !zone || clusters.length < 4) return;
+    var ORDER = [1, 2, 3, 0];                                  // bottom layer → top layer: AI ends up on top
+    var ACC = ['#2E8F96', '#F2A65A', '#E8703A', '#D9412B'];
+    var FG  = ['#F6EDDC', '#1D2D50', '#1D2D50', '#F6EDDC'];
+    for (var L = 0; L < ORDER.length; L++) {
+      tb.layers.push({ start: tb.chips.length });
+      var tags = clusters[ORDER[L]].querySelectorAll('.tag');
+      for (var t = 0; t < tags.length; t++) {
+        var el = document.createElement('span');
+        el.className = 'fly-tag';
+        el.textContent = tags[t].textContent;
+        el.style.background = ACC[L];
+        el.style.color = FG[L];
+        zone.appendChild(el);
+        tb.chips.push({ el: el, vis: false, full: false, rot: (t % 2 ? 1 : -1) * (22 + (t * 11) % 42) });
+      }
+    }
+    tb.wrap = pinWrap; tb.zone = zone;
+    tb.lid = sec.querySelector('.tb-lid');
+    tb.box = document.getElementById('tbox');
+    tb.narr = document.getElementById('tb-narr');
+    tb.base = sec.querySelector('.tb-base');
+    tb.burst = document.getElementById('tb-burst');
+    sec.classList.add('scrolly');
+    tb.built = true;
+    layoutToolboxScrolly();
+  }
+
+  function layoutToolboxScrolly() {
+    if (!tb.built) return;
+    var zw = tb.zone.clientWidth, zh = tb.zone.clientHeight;
+    var maxW = Math.min(zw * 0.92, 560);
+    var taper = zw < 480 ? 0.09 : 0.17;                        // pyramid narrows toward the top
+    var gapX = 7, gapY = 7;
+    var chipH = tb.chips[0] ? tb.chips[0].el.offsetHeight : 26;
+    var i, c;
+    for (i = 0; i < tb.chips.length; i++) tb.chips[i].w = tb.chips[i].el.offsetWidth;
+    var rowIdx = 0, row = [], rowW = 0, baseY = zh - 24;
+    function flush() {
+      if (!row.length) return;
+      var w = rowW - gapX, x0 = (zw - w) / 2;
+      var y = baseY - (rowIdx + 1) * (chipH + gapY);
+      for (var k = 0; k < row.length; k++) { row[k].ex = x0; row[k].ey = y; x0 += row[k].w + gapX; }
+      rowIdx++; row = []; rowW = 0;
+    }
+    for (var L = 0; L < 4; L++) {
+      var rowMax = maxW * (1 - taper * L);
+      var end = L + 1 < 4 ? tb.layers[L + 1].start : tb.chips.length;
+      for (i = tb.layers[L].start; i < end; i++) {
+        c = tb.chips[i];
+        if (rowW + c.w > rowMax && row.length) flush();
+        row.push(c); rowW += c.w + gapX;
+      }
+      flush();                                                 // each layer finishes its own course
+    }
+    // launch point, and vertical balance: split the leftover air above and below the pyramid
+    var boxR = tb.box.getBoundingClientRect(), zoneR = tb.zone.getBoundingClientRect();
+    tb.mouthX = boxR.left - zoneR.left + boxR.width / 2;
+    tb.mouthY = boxR.top - zoneR.top + 18;
+    var boxBottom = boxR.top - zoneR.top + boxR.height;
+    var topEy = baseY - rowIdx * (chipH + gapY);
+    var lift = Math.max(0, Math.round((topEy - boxBottom - 30) * 0.5));
+    if (lift) for (i = 0; i < tb.chips.length; i++) tb.chips[i].ey -= lift;
+    tb.base.style.top = (baseY - lift + 5) + 'px';
+    tb.base.style.width = Math.min(maxW + 44, zw) + 'px';
+    tb.burst.style.left = (zw / 2) + 'px';
+    tb.burst.style.top = (tb.chips[tb.chips.length - 1].ey + 2) + 'px';
+    var N = tb.chips.length;
+    tb.narrBounds = [0.10, 0, 0, 0];
+    for (L = 1; L < 4; L++) tb.narrBounds[L] = 0.10 + 0.72 * (tb.layers[L].start / (N - 1));
+    tb.wrapTop = tb.wrap.getBoundingClientRect().top + window.scrollY;
+    tb.wrapH = tb.wrap.offsetHeight;
+    tb.lastQ = -1;
+    tb.narrIdx = -1;
+  }
+
+  function updateToolboxScrolly(forcedQ) {
+    if (!tb.built) return;
+    var q = typeof forcedQ === 'number'
+      ? clamp01(forcedQ)
+      : clamp01((window.scrollY - tb.wrapTop) / Math.max(1, tb.wrapH - H));
+    if (typeof forcedQ !== 'number' && Math.abs(q - tb.lastQ) < 0.0004) return;
+    tb.lastQ = q;
+    var N = tb.chips.length;
+
+    // lid (handle rides along) opens for the pour, closes once the stack is built
+    var open = easeOutCubic(smooth(0, 0.09, q)) * (1 - easeInOutCubic(smooth(0.93, 0.995, q)));
+    tb.lid.style.transform = 'rotate(' + (-56 * open).toFixed(1) + 'deg)';
+    var pouring = q > 0.1 && q < 0.93;
+    tb.box.style.transform = 'translateX(-50%) rotate(' + (pouring ? (Math.sin(q * 80) * 1.4).toFixed(2) : '0') + 'deg)';
+
+    for (var i = 0; i < N; i++) {
+      var c = tb.chips[i];
+      var s = 0.10 + 0.72 * (i / (N - 1));
+      var e = smooth(s, s + 0.14, q);
+      if (e <= 0) {
+        if (c.vis) { c.el.style.opacity = '0'; c.vis = false; c.full = false; }
+        continue;
+      }
+      c.vis = true;
+      if (e < 0.22) { c.el.style.opacity = Math.min(1, e * 6).toFixed(2); c.full = false; }
+      else if (!c.full) { c.el.style.opacity = '1'; c.full = true; }
+      var u = 1 - e;
+      var sx = tb.mouthX - c.w / 2, sy = tb.mouthY;
+      var x = sx + (c.ex - sx) * easeInOutCubic(e);
+      var pk = Math.min(sy, c.ey) - (86 + (i % 5) * 20);       // pop up out of the box, then fall
+      var y = u * u * sy + 2 * u * e * pk + e * e * c.ey;
+      var sc = 1 + 0.12 * u;                                    // slightly larger in flight, settles on landing
+      c.el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (c.rot * u).toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
+    }
+
+    var narrIdx;
+    if (q > 0.965) narrIdx = 5;
+    else { narrIdx = 0; for (var nx = 0; nx < 4; nx++) if (q >= tb.narrBounds[nx]) narrIdx = nx + 1; }
+    if (narrIdx !== tb.narrIdx) {
+      tb.narrIdx = narrIdx;
+      tb.narr.textContent = TB_NARR[narrIdx];
+      tb.narr.classList.remove('nswap');
+      void tb.narr.offsetWidth;
+      tb.narr.classList.add('nswap');
+    }
+    var bs = Math.max(0, easeOutBack(smooth(0.95, 0.995, q)));
+    tb.burst.style.transform = 'translate(-50%, -50%) scale(' + bs.toFixed(3) + ') rotate(' + (q * 60).toFixed(1) + 'deg)';
+  }
+
+  window.__tbq = function (v) { updateToolboxScrolly(v); return 'q=' + v; };
+
+  // ---------- builds scrollytelling: the wall of work ----------
+  // All four case studies live on a 2×2 wall; scroll glides each one up to
+  // focus and back. Slow by design — the zoom spans ~40% of each chapter.
+  var bd = { built: false, cards: [], lastQ: -1 };
+  var BD_ACC = ['#D9412B', '#2E8F96', '#2470A0', '#8FAF9F'];
+  var BD_W = 0.235; // scrub width of each card's chapter
+
+  function buildBuildsScrolly() {
+    var sec = document.getElementById('builds');
+    if (reduced || !sec || !sec.classList) return;
+    var pinWrap = sec.querySelector('.pin-wrap');
+    var list = sec.querySelector('.bd-list');
+    var cards = sec.querySelectorAll('.proj');
+    var dots = document.getElementById('bd-dots');
+    if (!pinWrap || !list || !dots || cards.length < 4) return;
+    for (var i = 0; i < cards.length; i++) {
+      var el = cards[i];
+      el.classList.remove('rv');
+      el.classList.remove('in');
+      var dot = document.createElement('span');
+      dot.className = 'bd-dot';
+      dot.style.background = BD_ACC[i] || BD_ACC[0];
+      dots.appendChild(dot);
+      bd.cards.push({ el: el, dot: dot });
+    }
+    bd.wrap = pinWrap;
+    bd.list = list;
+    sec.classList.add('scrolly');
+    bd.built = true;
+    layoutBuildsScrolly();
+  }
+
+  function layoutBuildsScrolly() {
+    if (!bd.built) return;
+    var lw = bd.list.clientWidth, lh = bd.list.clientHeight;
+    for (var i = 0; i < bd.cards.length; i++) {
+      var c = bd.cards[i];
+      var h = c.el.offsetHeight, w = c.el.offsetWidth;
+      c.scale = Math.min(1, (lh - 14) / Math.max(1, h));
+      c.restY = Math.max(4, (lh - h * c.scale) / 2);
+      c.gsc = Math.max(0.14, Math.min((lw * 0.45) / Math.max(1, w), (lh * 0.45) / Math.max(1, h)));
+      var gcx = lw * (i % 2 ? 0.735 : 0.265);
+      var gcy = lh * (i < 2 ? 0.26 : 0.74);
+      c.gtx = gcx - lw / 2;
+      c.gty = gcy - (h * c.gsc) / 2;
+    }
+    bd.wrapTop = bd.wrap.getBoundingClientRect().top + window.scrollY;
+    bd.wrapH = bd.wrap.offsetHeight;
+    bd.lastQ = -1;
+  }
+
+  function updateBuildsScrolly(forcedQ) {
+    if (!bd.built) return;
+    var q = typeof forcedQ === 'number'
+      ? clamp01(forcedQ)
+      : clamp01((window.scrollY - bd.wrapTop) / Math.max(1, bd.wrapH - H));
+    if (typeof forcedQ !== 'number' && Math.abs(q - bd.lastQ) < 0.0004) return;
+    bd.lastQ = q;
+    var i, c, f;
+    // first pass: how focused is each card, and how focused is the most-focused one
+    var activeF = 0;
+    for (i = 0; i < bd.cards.length; i++) {
+      var p = clamp01((q - (0.03 + i * BD_W)) / BD_W);
+      var fIn = easeInOutCubic(smooth(0.04, 0.46, p));       // long, gliding zoom in…
+      var fOut = easeInOutCubic(smooth(0.56, 0.98, p));      // …brief hold, long glide back
+      f = (p <= 0 || p >= 1) ? 0 : Math.min(fIn, 1 - fOut);
+      bd.cards[i].f = f;
+      if (f > activeF) activeF = f;
+    }
+    for (i = 0; i < bd.cards.length; i++) {
+      c = bd.cards[i];
+      f = c.f;
+      var tx = c.gtx * (1 - f);
+      var ty = c.gty * (1 - f) + c.restY * f;
+      var sc = c.gsc + (c.scale - c.gsc) * f;
+      c.el.style.opacity = f > 0 ? '1' : (1 - 0.35 * activeF).toFixed(2); // spotlight: the wall dims a touch
+      c.el.style.zIndex = f > 0 ? '3' : '1';
+      c.el.style.transform = 'translate(calc(-50% + ' + tx.toFixed(1) + 'px),' + ty.toFixed(1) + 'px) scale(' + sc.toFixed(4) + ')';
+      c.dot.style.transform = 'scale(' + (1 + 0.3 * f).toFixed(2) + ')';
+      c.dot.style.opacity = (0.45 + 0.55 * f).toFixed(2);
+    }
+  }
+  window.__bq = function (v) { updateBuildsScrolly(v); return 'q=' + v; };
+
+  // ---------- off-hours & contact: light viewport-progress flourishes (no pinning) ----------
+  var oh = { built: false }, ct = { built: false };
+
+  function buildFlourishes() {
+    if (reduced) return;
+    var sec = document.getElementById('offhours');
+    if (sec && sec.classList) {
+      var pcs = sec.querySelectorAll('.postcard');
+      var bars = sec.querySelector('.music-bars');
+      if (pcs.length === 3 && bars) {
+        oh.sec = sec;
+        oh.pcs = pcs;
+        oh.bars = bars;
+        oh.rots = [-9, 4, 10];
+        bars.style.transformOrigin = '50% 100%';
+        oh.built = true;
+      }
+    }
+    var cs = document.getElementById('contact');
+    if (cs && cs.classList) {
+      var art = document.getElementById('ct-art');
+      var trail = document.getElementById('ct-trail');
+      var plane = document.getElementById('ct-plane');
+      var row = cs.querySelector('.cta-row');
+      if (art && trail && plane && row) {
+        row.classList.remove('rv');
+        row.classList.remove('in');
+        ct.sec = cs; ct.art = art; ct.trail = trail; ct.plane = plane;
+        ct.btns = row.querySelectorAll('.btn');
+        cs.classList.add('scrolly');
+        ct.built = true;
+      }
+    }
+    layoutFlourishes();
+  }
+
+  function layoutFlourishes() {
+    if (oh.built) {
+      oh.top = oh.sec.getBoundingClientRect().top + window.scrollY;
+      oh.pw = oh.pcs[0].offsetWidth;
+      oh.lastR = -1;
+    }
+    if (ct.built) {
+      ct.top = ct.sec.getBoundingClientRect().top + window.scrollY;
+      ct.aw = ct.art.clientWidth;
+      ct.ah = ct.art.clientHeight;
+      ct.lastR = -1;
+    }
+  }
+
+  function updateFlourishes(fOh, fCt) {
+    var sy = window.scrollY;
+    if (oh.built) {
+      var r = typeof fOh === 'number' ? clamp01(fOh) : clamp01((sy + H * 0.88 - oh.top) / (H * 0.8));
+      if (typeof fOh === 'number' || Math.abs(r - oh.lastR) > 0.0005) {
+        oh.lastR = r;
+        // the photos land on the table and spread out
+        var e = easeOutCubic(smooth(0.08, 0.55, r));
+        for (var i = 0; i < 3; i++) {
+          var dx = (1 - i) * oh.pw * 1.12 * (1 - e);
+          oh.pcs[i].style.transform = 'translate(' + dx.toFixed(1) + 'px,' + ((1 - e) * -8).toFixed(1) + 'px) rotate(' + (oh.rots[i] * (1 - e)).toFixed(1) + 'deg)';
+        }
+        // the fader comes up
+        var bs = 0.15 + 0.85 * easeInOutCubic(smooth(0.22, 0.62, r));
+        oh.bars.style.transform = 'scaleY(' + bs.toFixed(3) + ')';
+      }
+    }
+    if (ct.built) {
+      var r2 = typeof fCt === 'number' ? clamp01(fCt) : clamp01((sy + H * 0.92 - ct.top) / (H * 0.85));
+      if (typeof fCt === 'number' || Math.abs(r2 - ct.lastR) > 0.0005) {
+        ct.lastR = r2;
+        // the paper plane arcs in over the headline and lands; its trail draws behind it
+        var t = easeInOutCubic(smooth(0.04, 0.62, r2));
+        var ax = 0, ay = ct.ah * 0.82;
+        var cx2 = ct.aw * 0.55, cy2 = -ct.ah * 0.35;
+        var bx2 = ct.aw * 0.9, by2 = ct.ah * 0.58;
+        var u2 = 1 - t;
+        var px2 = u2 * u2 * ax + 2 * u2 * t * cx2 + t * t * bx2;
+        var py2 = u2 * u2 * ay + 2 * u2 * t * cy2 + t * t * by2;
+        var ang = Math.atan2(2 * u2 * (cy2 - ay) + 2 * t * (by2 - cy2), 2 * u2 * (cx2 - ax) + 2 * t * (bx2 - cx2)) * 180 / Math.PI;
+        var bob2 = t < 1 ? Math.sin(r2 * 26) * 2 : 0;
+        ct.plane.style.transform = 'translate(' + px2.toFixed(1) + 'px,' + (py2 + bob2).toFixed(1) + 'px) rotate(' + ang.toFixed(1) + 'deg)';
+        ct.trail.style.strokeDashoffset = (100 - t * 100).toFixed(1);
+        // buttons pop in the plane's wake; inline transform clears at rest so hover/active still work
+        for (var b3 = 0; b3 < ct.btns.length; b3++) {
+          var be = easeOutBack(smooth(0.34 + b3 * 0.11, 0.5 + b3 * 0.11, r2));
+          ct.btns[b3].style.transform = be >= 1 ? '' : 'scale(' + Math.max(0.001, be).toFixed(3) + ')';
+        }
+      }
+    }
+  }
+  window.__ohr = function (v) { updateFlourishes(v, undefined); return 'r=' + v; };
+  window.__ctr = function (v) { updateFlourishes(undefined, v); return 'r=' + v; };
+
+  // section reveals (JS-gated: without JS everything is simply visible)
+  if (typeof IntersectionObserver !== 'undefined' && document.documentElement.classList) {
+    document.documentElement.classList.add('js');
+    var io = new IntersectionObserver(function (entries) {
+      for (var k = 0; k < entries.length; k++) {
+        if (entries[k].isIntersecting) { entries[k].target.classList.add('in'); io.unobserve(entries[k].target); }
+      }
+    }, { threshold: 0.12 });
+    var rvs = document.querySelectorAll('.rv');
+    for (var r = 0; r < rvs.length; r++) io.observe(rvs[r]);
+  }
+
+  buildWaves();
+  buildToolboxScrolly();
+  buildBuildsScrolly();
+  buildFlourishes();
+  readScroll();
+  if (reduced) {
+    for (var i = 0; i < strips.length; i++) strips[i].g.style.transform = '';
+  }
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
