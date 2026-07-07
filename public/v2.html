@@ -682,7 +682,7 @@
       <div class="badge" style="--bg: var(--orange);--tilt: -1.6deg; left: 29%; top: 58%;"><span class="yr">2023</span><span class="t">RotoEdgePro — AI Product</span></div>
       <div class="badge" style="--bg: var(--rust);  --fg: var(--cream); --tilt: 2.2deg; left: 50%; top: 11%;"><span class="yr">Next</span><span class="t">Your team?</span></div>
     </div>
-    <div><button id="cue2" type="button" aria-label="Continue to the toolbox" style="opacity: 0; pointer-events: none;">↓</button></div>
+    <div><button id="cue2" type="button" aria-label="Watch the toolbox unpack" style="opacity: 0; pointer-events: none;">↓</button></div>
   </div>
 </div>
 
@@ -1386,7 +1386,8 @@
       startTour(H * 5, 6500);                // smear done, trail drawn
     });
     if (cue2Btn) cue2Btn.addEventListener('click', function () {
-      startTour(tb.wrapTop !== undefined ? tb.wrapTop : H * 6, 1800);   // on to the toolbox
+      // ride the transit and the whole pour, landing on the finished pyramid
+      startTour(tb.wrapTop !== undefined ? tb.wrapTop + Math.max(1, tb.wrapH - H) : H * 9, 7000);
     });
     window.addEventListener('wheel', tourCancel, { passive: true });
     window.addEventListener('touchstart', tourCancel, { passive: true });
